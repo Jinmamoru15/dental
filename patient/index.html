@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abeledo Dental - Dashboard</title>
+  <!-- Preload CSS for better performance -->
+  <link rel="preload" href="style.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="style.css" /></noscript>
+</head>
+<body>
+  <header>
+    <h1>Abeledo Dental</h1>
+  </header>
+
+  <nav class="sidebar"></nav>
+    <ul class="nav-menu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="logout.html">Logout</a></li>
+    </ul>
+  </nav>
+
+  <div class="dashboard-container">
+    <!-- Left Column: Appointments & Treatment History -->
+    <div class="main-dashboard">
+      <section class="active-appointment">
+        <h2>Active Appointment</h2>
+        <p class="appointment-datetime">Loading...</p>
+        <p class="appointment-treatment">Loading...</p>
+        <p class="appointment-dentist">Loading...</p>
+      </section>
+      <section class="treatment-history">
+        <h2>Treatment History</h2>
+        <!-- Treatment items will be injected here -->
+        <p>Loading...</p>
+      </section>
+    </div>
+
+    <!-- Right Column: Profile Sidebar & Actions -->
+    <aside class="profile-sidebar">
+      <section class="profile-info">
+        <h2>Profile</h2>
+        <p class="profile-name">Loading...</p>
+        <p class="profile-location">Loading...</p>
+        <p class="profile-phone">Loading...</p>
+      </section>
+      <section class="profile-actions">
+        <h2>Actions</h2>
+        <ul>
+          <li><a href="update-profile.html">Update Profile</a></li>
+          <li><a href="change-password.html">Change Password</a></li>
+          <li><a href="view-billing.html">View Billing</a></li>
+          <li><a href="view-prescriptions.html">View Prescriptions</a></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <!-- AI Treatment Planning Modules Container -->
+  <div class="ai-container">
+    <!-- Sidebar Navigation for AI Modules -->
+    <aside class="ai-sidebar">
+      <nav>
+        <ul class="ai-menu">
+          <li><a href="book-appointment.html">Book Appointment</a></li>
+          <li><a href="timeline-progress.html">Timeline of Progress</a></li>
+          <li><a href="treatment-progress-tracker.html">Treatment Progress Tracker</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <!-- Main AI Content Area -->
+    <main class="ai-content">
+      <!-- Combined Module for Dental Imaging & AI Analysis -->
+      <section id="dental-imaging-ai">
+        <h2>Dental Imaging & AI Analysis</h2>
+        <!-- Tab Navigation -->
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'upload')" id="defaultOpen">Upload Images</button>
+          <button class="tablinks" onclick="openTab(event, 'rendering')">Image Rendering</button>
+          <button class="tablinks" onclick="openTab(event, 'treatment')">AI Treatment Plan</button>
+        </div>
+        <!-- Tab Content -->
+        <div id="upload" class="tabcontent">
+          <h3>Upload Dental Images</h3>
+          <p>[Image Upload Interface Placeholder]</p>
+        </div>
+        <div id="rendering" class="tabcontent">
+          <h3>Image Rendering Results</h3>
+          <p>[Rendered Images Placeholder]</p>
+        </div>
+        <div id="treatment" class="tabcontent">
+          <h3>AI-Generated Treatment Plan</h3>
+          <p>[Treatment Plan Placeholder]</p>
+        </div>
+      </section>
+
+      <!-- Additional AI Module: Notifications -->
+      <section id="notifications">
+        <h2>Notifications</h2>
+        <p>[Notifications Placeholder]</p>
+      </section>
+    </main>
+  </div>
+
+</body>
+</html>
