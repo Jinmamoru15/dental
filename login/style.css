@@ -1,0 +1,317 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  animation: slideshow 20s infinite ease-in-out;
+  transition: background-image 1s ease-in-out;
+  filter: brightness(0.5);
+}
+
+@keyframes slideshow {
+  0% { background-image: url('/image-icons/background_login.jpg'); }
+  25% { background-image: url('/image-icons/background_login1.jpg'); }
+  50% { background-image: url('/image-icons/background_login2.jpg'); }
+  75% { background-image: url('/image-icons/background_login3.jpg'); }
+  100% { background-image: url('/image-icons/background_login.jpg'); }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.form-control::placeholder {
+  color: #ccc;
+}
+
+.btn {
+  background-color: white;
+  color: #2C3E50;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s all ease;
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+}
+
+.btn::before {
+  background-color: #e0893f;
+  transition: 0.4s all ease;
+  border-radius: 5px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: 50%;
+  bottom: 0;
+  opacity: 0;
+  content: '';
+  z-index: -1;
+}
+
+.btn:hover:before,
+.btn:focus:before {
+  left: 0;
+  right: 0;
+  opacity: 1;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.password-toggle {
+  position: relative;
+}
+
+.password-toggle input {
+  padding-right: 40px; /* space for the eye icon */
+}
+
+.password-toggle .toggle-icon {
+  position: absolute;
+  top: 70%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #ffffffcc;
+  font-size: 1.2rem;
+}
+
+.modern-close {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.modern-close:hover {
+  color: #ff6b6b; /* Soft red on hover */
+  transform: scale(1.2); /* Slight zoom effect */
+  text-decoration: none;
+}
+
+.form-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 1.3rem;
+  margin-bottom: 0.4rem;
+}
+
+input {
+  color: inherit;
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #757575;
+  padding-left: 1.5rem;
+  font-size: 15px;
+}
+
+.input-group {
+  padding: 1% 0;
+  position: relative;
+}
+
+input:focus {
+  background-color: transparent;
+  outline: transparent;
+  border-bottom: 2px solid hsl(327, 90%, 28%);
+}
+
+input::placeholder {
+  color: transparent;
+}
+
+label {
+  color: #ffffff;
+  position: relative;
+  cursor: auto;
+  transition: 0.3s ease all;
+}
+
+input:focus ~ label,
+input:not(:placeholder-shown) ~ label {
+  top: -3em;
+  color: hsl(327, 90%, 28%);
+  font-size: 15px;
+}
+
+.recover {
+  text-align: right;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.recover a {
+  text-decoration: none;
+  color: white;
+}
+
+.recover a:hover {
+  color: rgb(125, 125, 235);
+  text-decoration: underline;
+}
+
+.or {
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 60px;
+  margin-top: 1rem;
+}
+
+#signUpButton, #signInButton {
+  color: rgb(125, 125, 235);
+  border: none;
+  background-color: transparent;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 1.2rem;
+}
+
+#signUpButton:hover, #signInButton:hover {
+  text-decoration: underline;
+  color: rgb(125, 125, 235);
+}
+
+.messageDiv {
+  background-color: hsl(327, 90%, 28%);
+  color: white;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 5px;
+  font-size: 1rem;
+  opacity: 0;
+  animation: fadeOut 7s forwards;
+}
+
+#recoverPassword {
+  display: none;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+#recoverPassword h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+#recoverPassword .form-control {
+  background-color: transparent;
+  color: #fff;
+  border-color: #fff;
+  margin-bottom: 20px;
+}
+
+#recoverPassword .form-control::placeholder {
+  color: #ccc;
+}
+
+#recoverPassword .btn {
+  background-color: white;
+  color: #2C3E50;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s all ease;
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+}
+
+#recoverPassword .btn::before {
+  background-color: #e0893f;
+  transition: 0.4s all ease;
+  border-radius: 5px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: 50%;
+  bottom: 0;
+  opacity: 0;
+  content: '';
+  z-index: -1;
+}
+
+#recoverPassword .btn:hover:before,
+#recoverPassword .btn:focus:before {
+  left: 0;
+  right: 0;
+  opacity: 1;
+}
+
+#recoverPassword .btn:active {
+  transform: scale(0.95);
+}
+
+#recoverPassword .links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 60px;
+  margin-top: 1rem;
+}
+
+#backToSignIn {
+  color: rgb(125, 125, 235);
+  border: none;
+  background-color: transparent;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 1.2rem;
+}
+
+#backToSignIn:hover {
+  text-decoration: underline;
+  color: rgb(125, 125, 235);
+}
+
+.recoverPasswordText {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  color: #fff;
+}

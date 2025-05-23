@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register & Login</title>
+  <!-- Bootstrap and icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- Sign Up Form -->
+  <div id="signup" class="glass-card text-white" style="display:none;">
+    <!-- Close button -->
+    <div class="d-flex justify-content-end p-3">
+      <a href="/website/index.html" class="btn btn-outline-light fs-9 modern-close" title="Exit Signup">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+    <h2 class="text-center mb-4">Create New Account</h2>
+    <form id="signUpForm">
+      <!-- Message for sign up errors or success -->
+      <div id="signUpMessage" class="messageDiv" style="display:none;"></div>
+      <!-- First Name -->
+      <div class="mb-3">
+        <label for="fName" class="form-label">First Name</label>
+        <input type="text" id="fName" class="form-control bg-transparent text-white border-white" placeholder="Enter First Name" required />
+      </div>
+      <!-- Last Name -->
+      <div class="mb-3">
+        <label for="lName" class="form-label">Last Name</label>
+        <input type="text" id="lName" class="form-control bg-transparent text-white border-white" placeholder="Enter Last Name" required />
+      </div>
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="rEmail" class="form-label">Email</label>
+        <input type="email" id="rEmail" class="form-control bg-transparent text-white border-white" placeholder="Enter Email: @example.com" required />
+      </div>
+      <!-- Password -->
+      <div class="mb-3 password-toggle">
+        <label for="rPassword" class="form-label">Password</label>
+        <input type="password" id="rPassword" class="form-control bg-transparent text-white border-white" placeholder="Enter Password" required />
+        <i class="bi bi-eye-slash toggle-icon" id="toggleSignUpPassword"></i>
+      </div>
+      <!-- Confirm Password -->
+      <div class="mb-3 password-toggle">
+        <label for="confirmSignUpPassword" class="form-label">Confirm Password</label>
+        <input type="password" id="confirmSignUpPassword" class="form-control bg-transparent text-white border-white" placeholder="Confirm Password" required />
+        <i class="bi bi-eye-slash toggle-icon" id="toggleConfirmSignUpPassword"></i>
+      </div>
+      <!-- Sign Up Button -->
+      <button class="btn btn-light w-100 fw-bold mt-3" id="submitSignUp">Sign Up</button>
+      <!-- Link to Sign In -->
+      <div class="links text-center mt-3">
+        <p>Already have an account?</p>
+        <button type="button" id="signInButton" class="btn btn-outline-light">Sign In</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sign In Form -->
+  <div id="signIn" class="glass-card text-white" style="display: block;">
+    <div class="d-flex justify-content-end p-3">
+      <a href="/website/index.html" class="btn btn-outline-light fs-9 modern-close" title="Exit Login">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+    <h2 class="text-center mb-4">Welcome Back</h2>
+    <form id="loginForm">
+      <!-- Message for sign in errors -->
+      <div id="signInMessage" class="messageDiv" style="display:none;"></div>
+      <h5 class="text-center mb-4">Patient Login</h5>
+      <!-- Email or Username -->
+      <div class="mb-3">
+        <label for="email" class="form-label">Email or Username</label>
+        <input type="email" class="form-control bg-transparent text-white border-white" id="email" placeholder="Enter your username" required />
+      </div>
+      <!-- Password -->
+      <div class="mb-3 password-toggle">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control bg-transparent text-white border-white" id="password" placeholder="Enter your password" required />
+        <i class="bi bi-eye-slash toggle-icon" id="toggleSignInPassword"></i>
+      </div>
+      <!-- Recover Password Link -->
+      <p class="recover text-end">
+        <a href="#" id="recoverPasswordLink">Recover Password</a>
+      </p>
+      <!-- Sign In Buttons -->
+      <button type="submit" id="submitSignIn" class="btn btn-light w-100 fw-bold mt-3">Sign In</button>
+      <button type="button" id="submitSignInStaff" class="btn btn-light w-100 fw-bold mt-3">Sign In as Staff</button>
+      <!-- Link to Sign Up -->
+      <div class="links text-center mt-3">
+        <p>Don't have an account yet?</p>
+        <button type="button" id="signUpButton" class="btn btn-outline-light">Sign Up</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Recover Password Form -->
+  <div id="recoverPassword" class="glass-card text-white" style="display: none;">
+    <div class="d-flex justify-content-end p-3">
+      <a href="index.html" class="btn btn-outline-light fs-9 modern-close" title="Exit Recovery">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+    <h2 class="text-center mb-4">Recover Your Account</h2>
+    <form id="recoveryRequestForm">
+      <!-- Email for recovery -->
+      <div class="mb-3">
+        <label for="recoverEmail" class="form-label">Email</label>
+        <input type="email" id="recoverEmail" class="form-control bg-transparent text-white border-white" placeholder="Enter your registered email" required />
+      </div>
+      <button type="submit" class="btn btn-light w-100 fw-bold mt-3">Send OTP</button>
+    </form>
+  </div>
+
+  <!-- OTP Verification Form -->
+  <div id="otpVerification" class="glass-card text-white" style="display: none;">
+    <a href="index.html" class="btn btn-outline-light fs-9 modern-close" title="Exit Recovery">
+      <i class="bi bi-x-lg"></i>
+    </a>
+    <h2 class="text-center mb-4">Enter OTP</h2>
+    <form id="otpForm">
+      <!-- OTP input -->
+      <div class="mb-3">
+        <label for="otpCode" class="form-label">OTP Code</label>
+        <input type="text" id="otpCode" class="form-control bg-transparent text-white border-white" placeholder="Enter OTP code" required />
+      </div>
+      <!-- Message for OTP errors -->
+      <div id="otpMessage" class="text-danger text-center mb-2" style="display:none;"></div>
+      <button type="submit" class="btn btn-light w-100 fw-bold mt-3">Verify OTP</button>
+    </form>
+  </div>
+
+  <!-- Reset Password Form -->
+  <div id="resetPasswordForm" class="glass-card text-white" style="display: none;">
+    <a href="index.html" class="btn btn-outline-light fs-9 modern-close" title="Exit Recovery">
+      <i class="bi bi-x-lg"></i>
+    </a>
+    <h2 class="text-center mb-4">Reset Your Password</h2>
+    <form id="resetForm">
+      <!-- New Password -->
+      <div class="mb-3 password-toggle">
+        <label for="newPassword" class="form-label">New Password</label>
+        <input type="password" id="newPassword" class="form-control bg-transparent text-white border-white" placeholder="Enter new password" required />
+        <i class="bi bi-eye-slash toggle-icon" id="toggleResetPassword"></i>
+      </div>
+      <!-- Confirm Password -->
+      <div class="mb-3 password-toggle">
+        <label for="confirmResetPassword" class="form-label">Confirm Password</label>
+        <input type="password" id="confirmResetPassword" class="form-control bg-transparent text-white border-white" placeholder="Confirm password" required />
+        <i class="bi bi-eye-slash toggle-icon" id="toggleConfirmResetPassword"></i>
+      </div>
+      <button type="submit" class="btn btn-light w-100 fw-bold mt-3">Update Password</button>
+    </form>
+  </div>
+
+  <!-- Staff Login Form -->
+  <div id="signInStaff" class="glass-card text-white" style="display: none;">
+    <div class="d-flex justify-content-end p-3">
+      <a href="/website/index.html" class="btn btn-outline-light fs-9 modern-close" title="Exit Login">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+    <h2 class="text-center mb-4">Welcome Back</h2>
+    <form id="loginForm">
+      <!-- Message for staff login errors -->
+      <div id="signInMessage" class="messageDiv" style="display:none;"></div>
+      <h5 class="text-center mb-4">Staff Login</h5>
+      <!-- Email or Username -->
+      <div class="mb-3">
+        <label for="email-staff" class="form-label">Email or Username</label>
+        <input type="email-staff" class="form-control bg-transparent text-white border-white" id="email-staff" placeholder="Enter your username" required />
+      </div>
+      <!-- Password -->
+      <div class="mb-3 password-toggle">
+        <label for="password-staff" class="form-label">Password</label>
+        <input type="password-staff" class="form-control bg-transparent text-white border-white" id="password-staff" placeholder="Enter your password" required />
+        <i class="bi bi-eye-slash toggle-icon" id="toggleSignInPassword"></i>
+      </div>
+      <!-- Staff Login Buttons -->
+      <button type="submit" id="submitSignInStaff" class="btn btn-light w-100 fw-bold mt-3">Sign In</button>
+      <button type="submit" id="submitSignInStaff" class="btn btn-light w-100 fw-bold mt-3">Sign In as Admin</button>
+      <button type="button" id="backToPatientLogin" class="btn btn-outline-light w-100 fw-bold mt-3">Back to Patient Login</button>
+    </form>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+  <script type="module" src="firebaseauth.js"></script>
+</body>
+</html>
