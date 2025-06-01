@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dental Staff Interface</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f9ff;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #004a9f;
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.5rem;
+      user-select: none;
+    }
+    header button {
+      background: #1064c9;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    header button:hover {
+      background: #083d6b;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      height: calc(100vh - 64px);
+    }
+    nav {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      flex: 1;
+    }
+    nav ul li {
+      border-bottom: 1px solid #eee;
+    }
+    nav ul li button {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 1rem 1.5rem;
+      text-align: left;
+      font-size: 1rem;
+      color: #004a9f;
+      cursor: pointer;
+      border-left: 4px solid transparent;
+      transition: 0.3s;
+    }
+    nav ul li button:hover,
+    nav ul li button.active {
+      background: #e3f0ff;
+      border-left-color: #1064c9;
+      color: #083d6b;
+      font-weight: 700;
+    }
+    section.content {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      background: #f5f9ff;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      color: #004a9f;
+      border-bottom: 2px solid #1064c9;
+      padding-bottom: 0.25rem;
+    }
+    /* Scroll for lists */
+    .scrollable {
+      max-height: 450px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      margin-bottom: 1rem;
+    }
+    /* Appointment list item */
+    .appt-item {
+      border-bottom: 1px solid #ddd;
+      padding: 0.6rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .appt-details {
+      flex: 1;
+    }
+    .status {
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      color: white;
+      width: fit-content;
+    }
+    .status.pending { background: #fbc02d; }
+    .status.confirmed { background: #43a047; }
+    .status.checked-in { background: #1e88e5; }
+    .status.no-show { background: #e53935; }
+    .status.cancelled { background: #757575; }
+    /* Buttons */
+    .btn {
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      font-weight: 600;
+      padding: 0.3rem 0.9rem;
+      background: #1064c9;
+      color: white;
+      transition: background-color 0.3s ease;
+      font-size: 0.85rem;
+      user-select: none;
+    }
+    .btn:hover:not(:disabled) {
+      background: #083d6b;
+    }
+    .btn:disabled {
+      background: #a1c2f5;
+      cursor: not-allowed;
+    }
+    /* Forms */
+    form label {
+      display: block;
+      margin: 0.5rem 0 0.25rem;
+      font-weight: 600;
+      color: #1064c9;
+    }
+    form input[type="text"],
+    form input[type="email"],
+    form input[type="tel"],
+    form input[type="date"],
+    form input[type="time"],
+    form select,
+    form textarea {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    form textarea {
+      min-height: 70px;
+    }
+    /* Messaging */
+    .messages-container {
+      max-height: 350px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      margin-bottom: 1rem;
+    }
+    .message {
+      max-width: 75%;
+      padding: 0.7rem 1rem;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      line-height: 1.3;
+      user-select: none;
+    }
+    .message.sent {
+      align-self: flex-end;
+      background: #1064c9;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message.received {
+      align-self: flex-start;
+      background: #e0e0e0;
+      color: #333;
+      border-bottom-left-radius: 4px;
+    }
+    .message-time {
+      font-size: 0.7rem;
+      color: #999;
+      margin-top: 0.25rem;
+    }
+    .message-input-area {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .message-input-area textarea {
+      flex: 1;
+      resize: none;
+      height: 60px;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .message-input-area button {
+      width: 100px;
+      align-self: flex-end;
+    }
+    /* Profile details */
+    .profile-section {
+      max-width: 700px;
+    }
+    .profile-section label {
+      margin-top: 1rem;
+    }
+    /* Notification */
+    .notification {
+      background: #cdeaff;
+      border-left: 5px solid #1064c9;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      font-weight: 600;
+      color: #083d6b;
+      user-select: none;
+    }
+    /* Feedback item */
+    .feedback-item {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgb(0 0 0 / 0.1);
+      margin-bottom: 1rem;
+    }
+    /* Responsive */
+    @media (max-width: 900px) {
+      main {
+        flex-direction: column;
+        height: auto;
+      }
+      nav {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        overflow-x: auto;
+      }
+      nav ul {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        justify-content: space-around;
+      }
+      nav ul li {
+        border-bottom: none;
+        border-right: 1px solid #ddd;
+      }
+      nav ul li:last-child {
+        border-right: none;
+      }
+      nav ul li button {
+        padding: 0.75rem 0.85rem;
+        font-size: 0.9rem;
+      }
+      section.content {
+        padding: 1rem;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dental Staff Interface</h1>
+    <button id="logoutBtn" title="Logout">Logout</button>
+  </header>
+  <main>
+    <nav aria-label="Staff primary navigation">
+      <ul>
+        <li><button class="active" data-section="dashboard">Dashboard</button></li>
+        <li><button data-section="appointments">Appointment Management</button></li>
+        <li><button data-section="treatment">Treatment Assistance</button></li>
+        <li><button data-section="billing">Billing & Payment</button></li>
+        <li><button data-section="messaging">Messaging</button></li>
+        <li><button data-section="checkin">Patient Check-In</button></li>
+        <li><button data-section="notifications">Notifications</button></li>
+        <li><button data-section="feedback">Patient Feedback</button></li>
+      </ul>
+    </nav>
+    <section class="content" tabindex="0">
+      <!-- Dashboard -->
+      <div id="dashboard" class="section active-section" style="display: block;">
+        <h2>Dashboard - Today's Overview</h2>
+        <div>
+          <h3>Today's Appointments</h3>
+          <div id="todaysAppointments" class="scrollable" aria-live="polite">Loading...</div>
+        </div>
+        <div>
+          <h3>Patients to Expect Today</h3>
+          <div id="patientsToExpect" class="scrollable" aria-live="polite">Loading...</div>
+        </div>
+        <div>
+          <h3>Patient Notifications</h3>
+          <div id="patientNotifications" class="scrollable" aria-live="polite">Loading...</div>
+        </div>
+        <div>
+          <h3>Staff Schedule</h3>
+          <div id="staffSchedule" class="scrollable" aria-live="polite">Loading...</div>
+        </div>
+        <div>
+          <h3>Unread Messages / Support Tickets</h3>
+          <div id="unreadMessages" class="scrollable" aria-live="polite">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Appointment Management -->
+      <div id="appointments" class="section" style="display: none;">
+        <h2>Appointment Management</h2>
+        <form id="manualAppointmentForm" aria-label="Book appointment form">
+          <label for="manualPatientEmail">Patient Email:</label>
+          <input type="email" id="manualPatientEmail" placeholder="patient@example.com" required />
+          <label for="manualDate">Date:</label>
+          <input type="date" id="manualDate" required />
+          <label for="manualTime">Time:</label>
+          <input type="time" id="manualTime" required />
+          <label for="manualDentist">Assign Dentist:</label>
+          <select id="manualDentist" required>
+            <option value="">-- Select Dentist --</option>
+            <option value="Dr. Abeledo">Dr. Abeledo</option>
+          </select>
+          <button type="submit" class="btn">Book Appointment</button>
+        </form>
+        <h3>All Patient Appointment Requests</h3>
+        <div id="allAppointments" class="scrollable" aria-live="polite">Loading...</div>
+      </div>
+
+      <!-- Treatment Assistance -->
+      <div id="treatment" class="section" style="display: none;">
+        <h2>Treatment Assistance</h2>
+        <div id="treatmentPlans" class="scrollable" aria-live="polite">Loading treatment plans...</div>
+        <form id="addTreatmentNoteForm" style="margin-top: 1rem;">
+          <label for="treatmentPatientEmail">Patient Email:</label>
+          <input type="email" id="treatmentPatientEmail" placeholder="patient@example.com" required />
+          <label for="treatmentNote">Add Treatment Note / Log:</label>
+          <textarea id="treatmentNote" required></textarea>
+          <button type="submit" class="btn">Add Note</button>
+        </form>
+        <form id="uploadTreatmentFileForm" style="margin-top: 1rem;">
+          <label for="treatmentFileUpload">Upload X-ray or Scan:</label>
+          <input type="file" id="treatmentFileUpload" accept="image/*,application/pdf" />
+          <button type="submit" class="btn">Upload File</button>
+        </form>
+      </div>
+
+      <!-- Billing & Payment -->
+      <div id="billing" class="section" style="display:none;">
+        <h2>Billing & Payment Processing</h2>
+        <form id="recordPaymentForm" aria-label="Record payment form">
+          <label for="billingPatientEmail">Patient Email:</label>
+          <input type="email" id="billingPatientEmail" placeholder="patient@example.com" required />
+          <label for="paymentAmount">Amount:</label>
+          <input type="number" id="paymentAmount" min="0" step="0.01" required />
+          <label for="paymentMethod">Payment Method:</label>
+          <select id="paymentMethod" required>
+            <option value="">-- Select Method --</option>
+            <option value="cash">Cash</option>
+            <option value="card">PayPal</option>
+            
+          </select>
+          <label for="paymentNotes">Notes (optional):</label>
+          <textarea id="paymentNotes"></textarea>
+          <button type="submit" class="btn">Record Payment</button>
+        </form>
+        <h3>Billing Records</h3>
+        <div id="billingRecords" class="scrollable" aria-live="polite">Loading billing records...</div>
+      </div>
+
+      <!-- Messaging -->
+      <div id="messaging" class="section" style="display:none;">
+        <h2>Messaging & Communication</h2>
+        <div id="messagesContainer" class="messages-container" aria-live="polite"></div>
+        <form id="messageForm" class="message-input-area" aria-label="Send message form">
+          <textarea id="messageInput" placeholder="Type your message..." required></textarea>
+          <button type="submit" class="btn">Send</button>
+        </form>
+      </div>
+
+      <!-- Patient Check-In -->
+      <div id="checkin" class="section" style="display:none;">
+        <h2>Patient Check-In & Profile Management</h2>
+        <div id="checkInList" class="scrollable" aria-live="polite">Loading patients...</div>
+      </div>
+
+      <!-- Notifications -->
+      <div id="notifications" class="section" style="display:none;">
+        <h2>Notifications & Follow-Up Management</h2>
+        <div id="followUpTasks" class="scrollable" aria-live="polite">Loading follow-up tasks...</div>
+      </div>
+
+      <!-- Feedback -->
+      <div id="feedback" class="section" style="display:none;">
+        <h2>Patient Feedback Monitoring</h2>
+        <div id="feedbackList" class="scrollable" aria-live="polite">Loading feedback...</div>
+      </div>
+    </section>
+  </main>
+  <script>
+    // Firebase config & initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDlR815Lyc6dLrCUVnQ_GnChVHNKSUROQ",
+      authDomain: "dental-d3b8b.firebaseapp.com",
+      projectId: "dental-d3b8b",
+      storageBucket: "dental-d3b8b.appspot.com",
+      messagingSenderId: "458829928920",
+      appId: "1:458829928920:web:690369fb87c570cac8faad"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // DOM Elements
+    const logoutBtn = document.getElementById('logoutBtn');
+    const navButtons = document.querySelectorAll('nav ul li button');
+    const sections = document.querySelectorAll('.section');
+
+    // Sections
+    const dashboardSection = document.getElementById('dashboard');
+    const appointmentsSection = document.getElementById('appointments');
+    const treatmentSection = document.getElementById('treatment');
+    const billingSection = document.getElementById('billing');
+    const messagingSection = document.getElementById('messaging');
+    const checkinSection = document.getElementById('checkin');
+    const notificationsSection = document.getElementById('notifications');
+    const feedbackSection = document.getElementById('feedback');
+
+    // Containers
+    const todaysAppointmentsDiv = document.getElementById('todaysAppointments');
+    const patientsToExpectDiv = document.getElementById('patientsToExpect');
+    const patientNotificationsDiv = document.getElementById('patientNotifications');
+    const staffScheduleDiv = document.getElementById('staffSchedule');
+    const unreadMessagesDiv = document.getElementById('unreadMessages');
+    const allAppointmentsDiv = document.getElementById('allAppointments');
+    const treatmentPlansDiv = document.getElementById('treatmentPlans');
+    const billingRecordsDiv = document.getElementById('billingRecords');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const checkInListDiv = document.getElementById('checkInList');
+    const followUpTasksDiv = document.getElementById('followUpTasks');
+    const feedbackListDiv = document.getElementById('feedbackList');
+
+    // Forms
+    const manualAppointmentForm = document.getElementById('manualAppointmentForm');
+    const addTreatmentNoteForm = document.getElementById('addTreatmentNoteForm');
+    const uploadTreatmentFileForm = document.getElementById('uploadTreatmentFileForm');
+    const recordPaymentForm = document.getElementById('recordPaymentForm');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+
+    let currentUser = null;
+    let currentUserData = null;
+
+    // Role based simple check (staff/admin patient differentiation)
+    // For demo, we consider a collection 'staff' with documents uid and {role: 'receptionist'/'assistant'/'admin'}
+    async function checkUserRole(uid) {
+      try {
+        const doc = await db.collection('staff').doc(uid).get();
+        if (!doc.exists) return null;
+        return doc.data().role || null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Authentication handlers
+    logoutBtn.addEventListener('click', async () => {
+      await auth.signOut();
+      location.reload();
+    });
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        showSection(btn.dataset.section);
+      });
+    });
+
+    function showSection(sectionName) {
+      sections.forEach(s => {
+        s.style.display = s.id === sectionName ? 'block' : 'none';
+      });
+      navButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.section === sectionName);
+      });
+    }
+
+    closeLoginModal.addEventListener('click', () => {
+      loginModal.style.display = 'none';
+      loginForm.reset();
+    });
+
+    loginForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = loginForm.loginEmail.value.trim();
+      const password = loginForm.loginPassword.value.trim();
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        loginModal.style.display = 'none';
+        loginForm.reset();
+      } catch(err) {
+        alert('Login failed: ' + err.message);
+      }
+    });
+
+    // OnAuthChanged
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        // Check role and proceed or logout if no staff role
+        const role = await checkUserRole(user.uid);
+        if (!role) {
+          alert('Access denied: not staff.');
+          auth.signOut();
+          return;
+        }
+        currentUserData = {role};
+        loginModal.style.display = 'none';
+        setupStaffDataListeners();
+        showSection('dashboard');
+      } else {
+        currentUser = null;
+        currentUserData = null;
+        showSection(null);
+        loginModal.style.display = 'flex';
+      }
+    });
+
+    // UTIL: Format date/time nicely
+    function formatDateTime(date) {
+      if (!date) return '';
+      const d = date instanceof Date ? date : date.toDate ? date.toDate() : new Date(date);
+      return d.toLocaleString([], {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    }
+    function formatDate(date) {
+      if (!date) return '';
+      const d = date instanceof Date ? date : date.toDate ? date.toDate() : new Date(date);
+      return d.toLocaleDateString();
+    }
+
+    // LOAD STAFF DATA & SET LISTENERS
+    function setupStaffDataListeners() {
+      listenTodaysAppointments();
+      listenPatientsToExpect();
+      listenPatientNotifications();
+      listenStaffSchedule();
+      listenUnreadMessages();
+      listenAllAppointments();
+      listenTreatmentPlans();
+      listenBillingRecords();
+      listenMessages();
+      listenCheckInList();
+      listenFollowUpTasks();
+      listenFeedback();
+    }
+
+    // 1. Dashboard Data
+    function listenTodaysAppointments() {
+      const todayStr = (new Date()).toISOString().slice(0,10);
+      db.collection('appointments')
+        .where('date', '==', todayStr)
+        .orderBy('time')
+        .onSnapshot(snapshot => {
+          if (snapshot.empty) {
+            todaysAppointmentsDiv.textContent = 'No appointments today.';
+            return;
+          }
+          todaysAppointmentsDiv.innerHTML = '';
+          snapshot.docs.forEach(doc => {
+            const appt = doc.data();
+            const div = document.createElement('div');
+            div.className = 'appt-item';
+            div.innerHTML = `<div class="appt-details"><strong>${appt.patientName || appt.patientEmail}</strong><br>
+                Date: ${appt.date} Time: ${appt.time} | Dentist: ${appt.dentist} | Status: <span class="status ${appt.status}">${appt.status}</span></div>`;
+            // Actions for pending appointments: Approve, Cancel
+            if (appt.status === 'pending') {
+              const approveBtn = document.createElement('button');
+              approveBtn.className = 'btn';
+              approveBtn.textContent = 'Approve';
+              approveBtn.onclick = () => updateAppointmentStatus(doc.id, 'confirmed');
+              div.appendChild(approveBtn);
+
+              const cancelBtn = document.createElement('button');
+              cancelBtn.className = 'btn';
+              cancelBtn.textContent = 'Cancel';
+              cancelBtn.onclick = () => updateAppointmentStatus(doc.id, 'cancelled');
+              div.appendChild(cancelBtn);
+            }
+            // Mark as checked-in / no-show if confirmed
+            else if (appt.status === 'confirmed') {
+              const checkinBtn = document.createElement('button');
+              checkinBtn.className = 'btn';
+              checkinBtn.textContent = 'Check-In';
+              checkinBtn.onclick = () => updateAppointmentStatus(doc.id, 'checked-in');
+              div.appendChild(checkinBtn);
+
+              const noShowBtn = document.createElement('button');
+              noShowBtn.className = 'btn';
+              noShowBtn.textContent = 'No-Show';
+              noShowBtn.onclick = () => updateAppointmentStatus(doc.id, 'no-show');
+              div.appendChild(noShowBtn);
+            }
+            todaysAppointmentsDiv.appendChild(div);
+          });
+        });
+    }
+    async function updateAppointmentStatus(appointmentId, newStatus) {
+      try {
+        const apptRef = db.collection('appointments').doc(appointmentId);
+        await apptRef.update({ status: newStatus });
+        alert('Appointment status updated to ' + newStatus);
+        // Optionally notify patient by adding notification (simplified)
+        const doc = await apptRef.get();
+        const appt = doc.data();
+        if (appt.patientUid) {
+          const noteRef = db.collection('patients').doc(appt.patientUid);
+          const notif = {
+            message: `Your appointment on ${appt.date} at ${appt.time} is now ${newStatus}.`,
+            date: firebase.firestore.Timestamp.now(),
+            read: false
+          };
+          await noteRef.update({
+            notifications: firebase.firestore.FieldValue.arrayUnion(notif)
+          });
+        }
+      } catch (err) {
+        alert('Failed to update appointment status: ' + err.message);
+      }
+    }
+    function listenPatientsToExpect() {
+      const todayStr = (new Date()).toISOString().slice(0,10);
+      db.collection('appointments').where('date', '==', todayStr)
+        .where('status', 'in', ['confirmed','checked-in'])
+        .onSnapshot(snapshot => {
+          if (snapshot.empty) {
+            patientsToExpectDiv.textContent = 'No patients to expect today.';
+            return;
+          }
+          const patientSet = new Set();
+          let html = '';
+          snapshot.docs.forEach(doc => {
+            const appt = doc.data();
+            if (appt.patientName) {
+              patientSet.add(appt.patientName);
+              html += `<div>${appt.patientName} (Dentist: ${appt.dentist}) — ${appt.status}</div>`;
+            }
+          });
+          patientsToExpectDiv.innerHTML = html || 'No patients to expect today.';
+        });
+    }
+    function listenPatientNotifications() {
+      db.collection('patientNotifications').where('status', '==', 'unread')
+        .onSnapshot(snapshot => {
+          if (snapshot.empty) {
+            patientNotificationsDiv.textContent = 'No unread patient notifications.';
+            return;
+          }
+          patientNotificationsDiv.innerHTML = '';
+          snapshot.docs.forEach(doc => {
+            const note = doc.data();
+            const div = document.createElement('div');
+            div.className = 'notification';
+            div.textContent = `${note.patientName || note.patientEmail}: ${note.message}`;
+            patientNotificationsDiv.appendChild(div);
+          });
+        });
+    }
+    function listenStaffSchedule() {
+      // For demo, show static schedule or load from 'staffSchedules' collection by currentUser.uid
+      staffScheduleDiv.textContent = 'Staff schedule feature not implemented.';
+    }
+    function listenUnreadMessages() {
+      // List unread messages from 'staffMessages/{currentUser.uid}/messages' collection or global
+      unreadMessagesDiv.textContent = 'Unread messages feature not implemented.';
+    }
+
+    // 2. Appointment Management - List all
+    function listenAllAppointments() {
+      db.collection('appointments')
+        .orderBy('date')
+        .orderBy('time')
+        .onSnapshot(snapshot => {
+          if (snapshot.empty) {
+            allAppointmentsDiv.textContent = 'No appointment requests.';
+            return;
+          }
+          allAppointmentsDiv.innerHTML = '';
+          snapshot.docs.forEach(doc => {
+            const appt = doc.data();
+            const div = document.createElement('div');
+            div.className = 'appt-item';
+            div.innerHTML = `<div class="appt-details"><strong>${appt.patientName || appt.patientEmail}</strong><br>
+              Date: ${appt.date} Time: ${appt.time}<br>
+              Dentist: ${appt.dentist}<br>
+              Status: <span class="status ${appt.status}">${appt.status}</span></div>`;
+            // Action buttons
+            if (appt.status === 'pending') {
+              const approveBtn = document.createElement('button');
+              approveBtn.className = 'btn';
+              approveBtn.textContent = 'Approve';
+              approveBtn.onclick = () => updateAppointmentStatus(doc.id, 'confirmed');
+              div.appendChild(approveBtn);
+
+              const cancelBtn = document.createElement('button');
+              cancelBtn.className = 'btn';
+              cancelBtn.textContent = 'Cancel';
+              cancelBtn.onclick = () => updateAppointmentStatus(doc.id, 'cancelled');
+              div.appendChild(cancelBtn);
+            }
+            allAppointmentsDiv.appendChild(div);
+          });
+        });
+    }
+    manualAppointmentForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = manualAppointmentForm.manualPatientEmail.value.trim();
+      const date = manualAppointmentForm.manualDate.value;
+      const time = manualAppointmentForm.manualTime.value;
+      const dentist = manualAppointmentForm.manualDentist.value;
+      if (!email || !date || !time || !dentist) return alert('Please fill all fields.');
+      try {
+        // Must get patient uid by email first
+        const patientQuery = await db.collection('patients').where('email', '==', email).limit(1).get();
+        if (patientQuery.empty) return alert('Patient email not found.');
+        const patientDoc = patientQuery.docs[0];
+        const patientData = patientDoc.data();
+        const patientUid = patientDoc.id;
+        const newAppt = {
+          patientUid,
+          patientEmail: email,
+          patientName: patientData.name || '',
+          date,
+          time,
+          dentist,
+          status: 'confirmed', // manual bookings auto confirmed
+          createdAt: firebase.firestore.Timestamp.now()
+        };
+        // Add to appointments collection
+        const apptRef = await db.collection('appointments').add(newAppt);
+        // Also update patient's appointments array (optional, for patient interface sync)
+        await db.collection('patients').doc(patientUid).update({
+          appointments: firebase.firestore.FieldValue.arrayUnion({
+            appointmentId: apptRef.id,
+            date,
+            time,
+            dentist,
+            status: 'confirmed'
+          })
+        });
+        alert('Manual appointment booked.');
+        manualAppointmentForm.reset();
+      } catch (err) {
+        alert('Failed to book appointment: ' + err.message);
+      }
+    });
+
+    // 3. Treatment Assistance
+    function listenTreatmentPlans() {
+      // For simplicity, load all patients' treatments for staff view
+      db.collection('patients').onSnapshot(snapshot => {
+        let html = '';
+        snapshot.forEach(doc => {
+          const patient = doc.data();
+          if (!patient.treatments) return;
+          const patientName = patient.name || doc.id;
+          html += `<h4>${patientName}</h4><ul>`;
+          patient.treatments.forEach(tr => {
+            html += `<li>${tr.name} - Status: ${tr.status || 'unknown'}, Progress: ${tr.progress || 'N/A'}</li>`;
+          });
+          html += `</ul>`;
+        });
+        treatmentPlansDiv.innerHTML = html || 'No treatment plans currently.';
+      });
+    }
+    addTreatmentNoteForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = addTreatmentNoteForm.treatmentPatientEmail.value.trim();
+      const note = addTreatmentNoteForm.treatmentNote.value.trim();
+      if (!email || !note) return alert('Please fill all fields.');
+      try {
+        const patientQuery = await db.collection('patients').where('email', '==', email).limit(1).get();
+        if (patientQuery.empty) return alert('Patient not found.');
+        const patientDoc = patientQuery.docs[0];
+        const patientRef = db.collection('patients').doc(patientDoc.id);
+        // Add note to treatmentNotes array
+        const treatmentNote = { note, date: firebase.firestore.Timestamp.now(), staffUid: currentUser.uid };
+        await patientRef.update({
+          treatmentNotes: firebase.firestore.FieldValue.arrayUnion(treatmentNote)
+        });
+        alert('Note added.');
+        addTreatmentNoteForm.reset();
+      } catch(err) {
+        alert('Failed to add note: ' + err.message);
+      }
+    });
+    uploadTreatmentFileForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = addTreatmentNoteForm.treatmentPatientEmail.value.trim();
+      if (!email) { alert('Enter patient email above for file upload'); return; }
+      const fileInput = document.getElementById('treatmentFileUpload');
+      if (!fileInput.files.length) return alert('Select a file first.');
+      try {
+        const patientQuery = await db.collection('patients').where('email', '==', email).limit(1).get();
+        if(patientQuery.empty) return alert('Patient email not found.');
+        const patientDoc = patientQuery.docs[0];
+        const storageRef = storage.ref().child(`patient_files/${patientDoc.id}/treatment_${Date.now()}_${fileInput.files[0].name}`);
+        const uploadTask = await storageRef.put(fileInput.files[0]);
+        const url = await uploadTask.ref.getDownloadURL();
+        const patientRef = db.collection('patients').doc(patientDoc.id);
+        await patientRef.update({
+          treatmentUploads: firebase.firestore.FieldValue.arrayUnion({ url, uploadedAt: firebase.firestore.Timestamp.now(), staffUid: currentUser.uid })
+        });
+        alert('File uploaded successfully.');
+        uploadTreatmentFileForm.reset();
+      } catch (err) {
+        alert('Upload failed: ' + err.message);
+      }
+    });
+
+    // 4. Billing & Payment
+    function listenBillingRecords() {
+      db.collection('patients').onSnapshot(snapshot => {
+        let html = '';
+        snapshot.forEach(doc => {
+          const patient = doc.data();
+          if (!patient.bills) return;
+          const patientName = patient.name || doc.id;
+          html += `<h4>${patientName}</h4><ul>`;
+          patient.bills.forEach(bill => {
+            html += `<li>Invoice #${bill.invoiceNumber || '--'}: $${bill.amount.toFixed(2)} (${bill.status || 'unknown'})</li>`;
+          });
+          html += '</ul>';
+        });
+        billingRecordsDiv.innerHTML = html || 'No billing records found.';
+      });
+    }
+    recordPaymentForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = recordPaymentForm.billingPatientEmail.value.trim();
+      const amount = parseFloat(recordPaymentForm.paymentAmount.value);
+      const method = recordPaymentForm.paymentMethod.value;
+      const notes = recordPaymentForm.paymentNotes.value.trim();
+      if (!email || isNaN(amount) || amount <= 0 || !method) return alert('Please fill all required fields correctly.');
+      try {
+        const patientQuery = await db.collection('patients').where('email', '==', email).limit(1).get();
+        if (patientQuery.empty) return alert('Patient not found.');
+        const patientDoc = patientQuery.docs[0];
+        const patientRef = db.collection('patients').doc(patientDoc.id);
+        // Add payment record
+        const paymentRecord = {
+          amount,
+          method,
+          notes,
+          date: firebase.firestore.Timestamp.now(),
+          staffUid: currentUser.uid,
+        };
+        // Update bills and payments arrays atomically (simplified here)
+        await patientRef.update({
+          payments: firebase.firestore.FieldValue.arrayUnion(paymentRecord)
+        });
+        alert('Payment recorded.');
+        recordPaymentForm.reset();
+      } catch(err) {
+        alert('Failed to record payment: ' + err.message);
+      }
+    });
+
+    // 5. Messaging & Communication
+    // Collection: staffMessages/{staffUid}/messages for incoming/outgoing messages
+    function listenMessages() {
+      if (!currentUser) return;
+      db.collection('staffMessages').doc(currentUser.uid).collection('messages')
+        .orderBy('sentAt')
+        .onSnapshot(snapshot => {
+          messagesContainer.innerHTML = '';
+          snapshot.docs.forEach(doc => {
+            const msg = doc.data();
+            const div = document.createElement('div');
+            div.className = 'message ' + (msg.sender === currentUser.uid ? 'sent' : 'received');
+            div.textContent = msg.text;
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = msg.sentAt ? formatDateTime(msg.sentAt) : '';
+            div.appendChild(timeDiv);
+            messagesContainer.appendChild(div);
+          });
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    }
+    messageForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!currentUser) return alert('Please login.');
+      const text = messageInput.value.trim();
+      if (!text) return;
+      // For demo: send message to 'patient support' or broadcast collection
+      try {
+        await db.collection('staffMessages').doc(currentUser.uid).collection('messages').add({
+          text,
+          sender: currentUser.uid,
+          sentAt: firebase.firestore.Timestamp.now()
+        });
+        messageInput.value = '';
+      } catch (err) {
+        alert('Failed to send message: ' + err.message);
+      }
+    });
+
+    // 6. Patient Check-In & Profile Management
+    function listenCheckInList() {
+      const todayStr = new Date().toISOString().slice(0,10);
+      db.collection('appointments').where('date', '==', todayStr).where('status', 'in', ['confirmed','checked-in'])
+        .onSnapshot(snapshot => {
+          if (snapshot.empty) {
+            checkInListDiv.textContent = 'No patients expected today.';
+            return;
+          }
+          checkInListDiv.innerHTML = '';
+          snapshot.docs.forEach(doc => {
+            const appt = doc.data();
+            const div = document.createElement('div');
+            div.className = 'appt-item';
+            div.innerHTML = `<div><strong>${appt.patientName || appt.patientEmail}</strong> - ${appt.time} | Dentist: ${appt.dentist}</div>`;
+            const arrivedBtn = document.createElement('button');
+            arrivedBtn.className = 'btn';
+            arrivedBtn.textContent = 'Mark Arrived';
+            arrivedBtn.onclick = () => updateAppointmentStatus(doc.id, 'checked-in');
+            const noShowBtn = document.createElement('button');
+            noShowBtn.className = 'btn';
+            noShowBtn.textContent = 'Mark No-Show';
+            noShowBtn.onclick = () => updateAppointmentStatus(doc.id, 'no-show');
+            div.appendChild(arrivedBtn);
+            div.appendChild(noShowBtn);
+            checkInListDiv.appendChild(div);
+          });
+        });
+    }
+
+    // 7. Notifications & Follow-Up Management
+    function listenFollowUpTasks() {
+      // Placeholder: Load from 'followUpTasks' collection (to be implemented)
+      followUpTasksDiv.textContent = 'Follow-up tasks feature not implemented.';
+    }
+
+    // 8. Patient Feedback Monitoring
+    function listenFeedback() {
+      db.collection('patients').onSnapshot(snapshot => {
+        let html = '';
+        snapshot.forEach(doc => {
+          const patient = doc.data();
+          if (!patient.feedback) return;
+          const patientName = patient.name || doc.id;
+          html += `<h4>${patientName}</h4><ul>`;
+          patient.feedback.forEach(item => {
+            html += `<li class="feedback-item"><strong>Rating:</strong> ${item.rating}/5<br>${item.text}<br><small>${formatDateTime(item.date)}</small></li>`;
+          });
+          html += '</ul>';
+        });
+        feedbackListDiv.innerHTML = html || 'No feedback available.';
+      });
+    }
+
+  </script>
+</body>
+</html>
+

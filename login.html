@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Abeledo Dental Clinic - Login & Registration</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f9ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 1rem;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+            max-width: 420px;
+            width: 100%;
+            padding: 2rem 2.5rem;
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #004a9f;
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin: 0.5rem 0 0.25rem;
+            font-weight: 600;
+            color: #1064c9;
+        }
+        input[type="email"],
+        input[type="password"],
+        input[type="text"],
+        input[type="tel"],
+        select {
+            width: 100%;
+            padding: 0.5rem 0.65rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        select:focus {
+            border-color: #1064c9;
+            outline: none;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            user-select: none;
+        }
+        .checkbox-container input {
+            margin-right: 0.5rem;
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            background-color: #1064c9;
+            color: white;
+            font-weight: 600;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            user-select: none;
+        }
+        button:hover:not(:disabled) {
+            background-color: #083d6b;
+        }
+        button:disabled {
+            background-color: #8ab4f8;
+            cursor: not-allowed;
+        }
+        .link {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #1064c9;
+            text-decoration: none;
+            cursor: pointer;
+            user-select: none;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #e53935;
+            font-weight: 600;
+            margin: 0.5rem 0 0;
+            text-align: center;
+            min-height: 1.4em;
+        }
+        /* Toggle between forms */
+        #registerForm, #forgotPasswordForm {
+            display: none;
+        }
+        /* Responsive */
+        @media (max-width:480px) {
+            .container {
+                max-width: 100%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" aria-live="polite">
+        <h1 id="formTitle">Login to Abeledo Dental Clinic</h1>
+
+        <!-- Login Form -->
+        <form id="loginForm" novalidate>
+            <label for="loginEmail">Email / Username:</label>
+            <input id="loginEmail" type="email" autocomplete="username" required />
+
+            <label for="loginPassword">Password:</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" required />
+
+            <label for="loginRole">Role:</label>
+            <select id="loginRole" required>
+                <option value="">-- Select Role --</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                <option value="patient">Patient</option>
+            </select>
+
+            <div class="checkbox-container">
+                <input id="rememberMe" type="checkbox" />
+                <label for="rememberMe">Remember Me</label>
+            </div>
+
+            <a href="#" id="showForgotPassword" class="link">Forgot Password?</a>
+
+            <button type="submit" id="loginButton">Login</button>
+
+            <a href="#" id="showRegister" class="link">Don’t have an account? Register Here</a>
+            <a href="tel:+1234567890" class="link">Need help? Contact clinic support</a>
+
+            <div id="loginError" class="error-message" aria-live="assertive" role="alert"></div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" novalidate>
+            <label for="regFullName">Full Name:</label>
+            <input id="regFullName" type="text" autocomplete="name" required />
+
+            <label for="regEmail">Email:</label>
+            <input id="regEmail" type="email" autocomplete="email" required />
+
+            <label for="regMobile">Mobile Number:</label>
+            <input id="regMobile" type="tel" autocomplete="tel" placeholder="+639..." required />
+
+            <label for="regPassword">Password:</label>
+            <input id="regPassword" type="password" autocomplete="new-password" minlength="6" required />
+
+            <label for="regConfirmPassword">Confirm Password:</label>
+            <input id="regConfirmPassword" type="password" autocomplete="new-password" minlength="6" required />
+
+            <label for="regRole">Role:</label>
+            <select id="regRole" required>
+                <option value="patient" selected>Patient</option>
+            </select>
+
+            <div class="checkbox-container">
+                <input id="regTerms" type="checkbox" required />
+                <label for="regTerms">I agree to the Terms and Conditions</label>
+            </div>
+
+            <button type="submit" id="registerButton">Register</button>
+            <a href="#" id="showLoginFromRegister" class="link">Already have an account? Login Here</a>
+            <div id="registerError" class="error-message" aria-live="assertive" role="alert"></div>
+        </form>
+
+        <!-- Forgot Password Form -->
+        <form id="forgotPasswordForm" novalidate>
+            <label for="fpEmail">Enter your Email or Mobile Number:</label>
+            <input id="fpEmail" type="email" autocomplete="email" required placeholder="Email or +639..." />
+            <button type="submit" id="forgotPasswordButton">Send Reset Email</button>
+            <a href="#" id="showLoginFromForgot" class="link">Back to Login</a>
+            <div id="forgotError" class="error-message" aria-live="assertive" role="alert"></div>
+        </form>
+
+    </div>
+
+    <script>
+        // Firebase config & initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDlR815Lyc6dLrCUVnQ_GnChVHNKSUROQ",
+            authDomain: "dental-d3b8b.firebaseapp.com",
+            projectId: "dental-d3b8b",
+            storageBucket: "dental-d3b8b.appspot.com",
+            messagingSenderId: "458829928920",
+            appId: "1:458829928920:web:690369fb87c570cac8faad"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Elements
+        const loginForm = document.getElementById("loginForm");
+        const registerForm = document.getElementById("registerForm");
+        const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+        const showRegisterLink = document.getElementById("showRegister");
+        const showLoginFromRegisterLink = document.getElementById("showLoginFromRegister");
+        const showForgotPasswordLink = document.getElementById("showForgotPassword");
+        const showLoginFromForgotLink = document.getElementById("showLoginFromForgot");
+        const loginError = document.getElementById("loginError");
+        const registerError = document.getElementById("registerError");
+        const forgotError = document.getElementById("forgotError");
+
+        // Show/hide forms helpers
+        function showLogin() {
+            loginForm.style.display = "block";
+            registerForm.style.display = "none";
+            forgotPasswordForm.style.display = "none";
+            loginError.textContent = "";
+            registerError.textContent = "";
+            forgotError.textContent = "";
+            document.querySelector("h1").textContent = "Login to Abeledo Dental Clinic";
+        }
+        function showRegister() {
+            loginForm.style.display = "none";
+            registerForm.style.display = "block";
+            forgotPasswordForm.style.display = "none";
+            loginError.textContent = "";
+            registerError.textContent = "";
+            forgotError.textContent = "";
+            document.querySelector("h1").textContent = "Register at Abeledo Dental Clinic";
+        }
+        function showForgotPassword() {
+            loginForm.style.display = "none";
+            registerForm.style.display = "none";
+            forgotPasswordForm.style.display = "block";
+            loginError.textContent = "";
+            registerError.textContent = "";
+            forgotError.textContent = "";
+            document.querySelector("h1").textContent = "Reset Password";
+        }
+
+        // Initial
+        showLogin();
+
+        showRegisterLink.addEventListener("click", e => {
+            e.preventDefault();
+            showRegister();
+        });
+        showLoginFromRegisterLink.addEventListener("click", e => {
+            e.preventDefault();
+            showLogin();
+        });
+        showForgotPasswordLink.addEventListener("click", e => {
+            e.preventDefault();
+            showForgotPassword();
+        });
+        showLoginFromForgotLink.addEventListener("click", e => {
+            e.preventDefault();
+            showLogin();
+        });
+
+        // Create default admin - for demo purposes ONLY: create document if missing
+        async function createDefaultAdminDoc() {
+            const adminEmail = "admin@abeledodental.test";
+            const docRef = db.collection("staff").where("email", "==", adminEmail);
+            const snapshot = await docRef.get();
+            if (snapshot.empty) {
+                await db.collection("staff").add({
+                    email: adminEmail,
+                    role: "admin",
+                    name: "Default Admin"
+                });
+                console.log("Default admin document created");
+            }
+        }
+        createDefaultAdminDoc();
+
+        // Login handler
+        loginForm.addEventListener("submit", async e => {
+            e.preventDefault();
+            loginError.textContent = "";
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
+            const role = document.getElementById("loginRole").value;
+            const rememberMe = document.getElementById("rememberMe").checked;
+
+            if (!email || !password || !role) {
+                loginError.textContent = "Fill all fields, please!";
+                return;
+            }
+
+            try {
+                await auth.setPersistence(rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
+                await auth.signInWithEmailAndPassword(email, password);
+
+                let userDoc = null;
+                if (role === "admin" || role === "staff") {
+                    const staffSnap = await db.collection("staff").where("email", "==", email).limit(1).get();
+                    if (staffSnap.empty) throw new Error("Staff user not found or unauthorized.");
+                    userDoc = staffSnap.docs[0].data();
+                    if (role === "admin" && userDoc.role !== "admin") throw new Error("You are not authorized as Admin.");
+                } else if (role === "patient") {
+                    const patientSnap = await db.collection("patients").where("email", "==", email).limit(1).get();
+                    if (patientSnap.empty) throw new Error("Patient user not found.");
+                    userDoc = patientSnap.docs[0].data();
+                }
+
+                // Redirect based on role
+                if (role === "admin") {
+                    window.location.href = "admin.html";
+                } else if (role === "staff") {
+                    window.location.href = "staff.html";
+                } else if (role === "patient") {
+                    window.location.href = "patient.html";
+                }
+            } catch (err) {
+                loginError.textContent = err.message;
+            }
+        });
+
+        // Registration handler
+        registerForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    registerError.textContent = "";
+
+    const fullName = document.getElementById("regFullName").value.trim();
+    const email = document.getElementById("regEmail").value.trim();
+    const mobile = document.getElementById("regMobile").value.trim();
+    const password = document.getElementById("regPassword").value.trim();
+    const confirmPassword = document.getElementById("regConfirmPassword").value.trim();
+    const termsAccepted = document.getElementById("regTerms").checked;
+
+    if (!fullName || !email || !mobile || !password || !confirmPassword || !termsAccepted) {
+        registerError.textContent = "Fill all fields and accept terms!";
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        registerError.textContent = "Passwords do not match!";
+        return;
+    }
+
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+
+        // Save patient data using UID as document ID ✅
+        await db.collection("patients").doc(uid).set({
+            name: fullName,
+            email: email,
+            mobile: mobile,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Registration successful! You may now log in.");
+        showLogin();
+    } catch (err) {
+        registerError.textContent = err.message;
+    }
+});
+        // Forgot Password handler
+        forgotPasswordForm.addEventListener("submit", async e => {
+            e.preventDefault();
+            forgotError.textContent = "";
+            const email = document.getElementById("fpEmail").value.trim();
+
+            if (!email) {
+                forgotError.textContent = "Please enter your email!";
+                return;
+            }
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+                alert("Password reset email sent!");
+                showLogin();
+            } catch (err) {
+                forgotError.textContent = err.message;
+            }
+        });
+    </script>
+</body>
+</html>

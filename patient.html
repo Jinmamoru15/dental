@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Abeledo Dental Clinic - Patient Interface</title>
+<style>
+  :root {
+    --blue-primary: #004e9b;
+    --blue-light: #227fc1;
+    --blue-lighter: #e6f0fa;
+    --gray-dark: #2c3e50;
+    --gray-light: #ecf0f1;
+    --red-alert: #e74c3c;
+    --green-success: #27ae60;
+    --yellow-alert: #f39c12;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-family);
+    background: var(--blue-lighter);
+    color: var(--gray-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background-color: var(--blue-primary);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+  main {
+    flex-grow: 1;
+    padding: 1rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    width: 100%;
+  }
+  nav {
+    background: var(--blue-light);
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 0.5rem 0;
+  }
+  nav button {
+    background: var(--blue-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  nav button:hover, nav button.active {
+    background: var(--blue-light);
+  }
+  section {
+    display: none;
+    animation: fadeIn 0.4s ease forwards;
+  }
+  section.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+  .dashboard-welcome {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    gap: 1rem;
+  }
+  .card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.12);
+  }
+  .card h3 {
+    margin-top: 0;
+    color: var(--blue-primary);
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .next-appointment {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .treatment-list {
+    list-style: none;
+    padding-left: 0;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .treatment-list li {
+    border-bottom: 1px solid var(--blue-lighter);
+    padding: 0.25rem 0;
+    font-size: 0.95rem;
+  }
+  .balance-amount {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--red-alert);
+  }
+  .notifications-list {
+    list-style: none;
+    padding-left: 0;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .notifications-list li {
+    border-bottom: 1px solid var(--blue-lighter);
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+  }
+  .notif-icon {
+    margin-right: 8px;
+  }
+  .notif-appointment {
+    color: var(--blue-primary);
+  }
+  .notif-message {
+    color: var(--green-success);
+  }
+  .notif-payment {
+    color: var(--red-alert);
+  }
+  .calendar-container {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.12);
+    max-width: 100%;
+  }
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  .calendar-header button {
+    background: var(--blue-primary);
+    border: none;
+    color: white;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+  }
+  .calendar-header button:hover {
+    background: var(--blue-light);
+  }
+  .calendar-month-year {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--blue-primary);
+  }
+  table.calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  table.calendar th {
+    padding: 0.5rem 0;
+    color: var(--blue-primary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--blue-light);
+    text-align:center;
+  }
+  table.calendar td {
+    border: 1px solid var(--blue-lighter);
+    height: 70px;
+    vertical-align: top;
+    padding: 0.25rem 0.3rem 0 0.3rem;
+    cursor: pointer;
+    position: relative;
+  }
+  table.calendar td.inactive, table.calendar td.unavailable {
+    background: #f9f9f9;
+    color: #bbb;
+    cursor: not-allowed;
+  }
+  table.calendar td.available:hover {
+    background: var(--blue-lighter);
+  }
+  .date-number {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.15rem;
+  }
+  .slot-status {
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 2px;
+  }
+  .slot-available {
+    background: var(--green-success);
+    color: white;
+  }
+  .slot-full {
+    background: var(--red-alert);
+    color: white;
+  }
+  .slot-queued {
+    background: var(--yellow-alert);
+    color: white;
+  }
+  .appointment-form {
+    margin-top: 1rem;
+    background: var(--blue-lighter);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+  }
+  .appointment-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    margin-top: 0.6rem;
+  }
+  .appointment-form select, 
+  .appointment-form input[type="time"], 
+  .appointment-form button {
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--blue-primary);
+    margin-bottom: 0.7rem;
+  }
+  .appointment-form button {
+    background: var(--blue-primary);
+    color: white;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .appointment-form button:hover {
+    background: var(--blue-light);
+  }
+  .appointment-info {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--blue-primary);
+  }
+  .conflict-warning {
+    color: var(--red-alert);
+    font-weight: 700;
+    margin-top: 0.4rem;
+  }
+  .success-message {
+    color: var(--green-success);
+    font-weight: 700;
+    margin-top: 0.4rem;
+  }
+  .treatment-history {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--blue-lighter);
+    border-radius: 6px;
+    background: white;
+    padding: 0.7rem;
+  }
+  .treatment-item {
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--blue-lighter);
+    padding-bottom: 8px;
+  }
+  .treatment-progress-bar {
+    background: var(--blue-lighter);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 14px;
+    margin-top: 6px;
+  }
+  .treatment-progress-fill {
+    background: var(--blue-primary);
+    height: 100%;
+  }
+  .upload-section {
+    margin-top: 1rem;
+  }
+  .upload-section input[type=file] {
+    display: block;
+    margin-top: 6px;
+  }
+  .billing-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid var(--blue-lighter);
+    border-radius: 6px;
+    padding: 0.7rem;
+  }
+  .invoice {
+    border-bottom: 1px solid var(--blue-lighter);
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.4rem;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+  .invoice:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .payment-btn {
+    margin-top: 1rem;
+    width: 100%;
+    background: var(--green-success);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 0;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .payment-btn:hover {
+    background: #219150;
+  }
+  .chat-container {
+    background: white;
+    height: 300px;
+    overflow-y: auto;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--blue-lighter);
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .chat-message {
+    max-width: 80%;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+  }
+  .chat-message.patient {
+    background: var(--blue-lighter);
+    align-self: flex-end;
+    color: var(--blue-primary);
+  }
+  .chat-message.staff {
+    background: var(--blue-primary);
+    color: white;
+    align-self: flex-start;
+  }
+  .chat-input-area {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.4rem;
+  }
+  .chat-input-area input[type="text"], .chat-input-area button {
+    border-radius: 6px;
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .chat-input-area input[type="text"] {
+    flex-grow: 1;
+    border: 1px solid var(--blue-primary);
+  }
+  .chat-input-area button {
+    background: var(--blue-primary);
+    border: none;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .chat-input-area button:hover {
+    background: var(--blue-light);
+  }
+  .profile-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .profile-form input, .profile-form textarea {
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--blue-primary);
+    margin-bottom: 1rem;
+  }
+  .profile-form button {
+    background: var(--blue-primary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .profile-form button:hover {
+    background: var(--blue-light);
+  }
+  .feedback-section textarea {
+    width: 100%;
+    height: 100px;
+    border-radius: 8px;
+    border: 1px solid var(--blue-primary);
+    padding: 0.5rem;
+  }
+  .feedback-section button {
+    margin-top: 0.7rem;
+    background: var(--blue-primary);
+    border: none;
+    color: white;
+    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .feedback-section button:hover {
+    background: var(--blue-light);
+  }
+  @media (max-width: 640px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .treatment-history::-webkit-scrollbar,
+  .billing-list::-webkit-scrollbar {
+    width: 7px;
+  }
+  .treatment-history::-webkit-scrollbar-thumb,
+  .billing-list::-webkit-scrollbar-thumb {
+    background: var(--blue-light);
+    border-radius: 10px;
+  }
+  .sr-only {
+    position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>Abeledo Dental Clinic - Patient Portal</div>
+  <div id="user-info" style="font-weight: 400; font-size: 0.9rem;"></div>
+</header>
+<nav>
+  <button class="nav-btn active" data-target="dashboard">Dashboard</button>
+  <button class="nav-btn" data-target="appointments">Appointments</button>
+  <button class="nav-btn" data-target="treatments">Treatment Plans</button>
+  <button class="nav-btn" data-target="billing">Billing & Payment</button>
+  <button class="nav-btn" data-target="messages">Messages</button>
+  <button class="nav-btn" data-target="profile">Profile & Medical</button>
+  <button class="nav-btn" data-target="reminders">Reminders</button>
+  <button class="nav-btn" data-target="feedback">Feedback</button>
+  <button id="logout-btn" style="margin-left:auto; background:#e74c3c;">Logout</button>
+</nav>
+<main>
+  <!-- Dashboard Section -->
+  <section id="dashboard" class="active" aria-label="Dashboard">
+    <div class="dashboard-welcome" id="welcome-msg">Welcome, Patient!</div>
+    <div class="dashboard-grid">
+      <div class="card" aria-label="Next Appointment">
+        <h3>Next Appointment</h3>
+        <div id="next-appointment" class="next-appointment">Loading...</div>
+      </div>
+      <div class="card" aria-label="Ongoing Treatments">
+        <h3>Ongoing Treatments</h3>
+        <ul class="treatment-list" id="ongoing-treatments">
+          <li>Loading...</li>
+        </ul>
+      </div>
+      <div class="card" aria-label="Outstanding Balance">
+        <h3>Outstanding Balance</h3>
+        <div id="outstanding-balance" class="balance-amount">₱0.00</div>
+      </div>
+      <div class="card" aria-label="Notifications">
+        <h3>Notifications</h3>
+        <ul class="notifications-list" id="notifications-list">
+          <li>No notifications</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Appointment Booking Section -->
+  <section id="appointments" aria-label="Appointments">
+    <div class="calendar-container" role="region" aria-live="polite" aria-label="Appointment Calendar">
+      <div class="calendar-header">
+        <button id="prev-month" aria-label="Previous Month">&lt;</button>
+        <div class="calendar-month-year" id="calendar-month-year">Loading...</div>
+        <button id="next-month" aria-label="Next Month">&gt;</button>
+      </div>
+      <table class="calendar" aria-describedby="calendar-description">
+        <thead>
+          <tr>
+            <th scope="col" aria-label="Sunday">Sun</th>
+            <th scope="col" aria-label="Monday">Mon</th>
+            <th scope="col" aria-label="Tuesday">Tue</th>
+            <th scope="col" aria-label="Wednesday">Wed</th>
+            <th scope="col" aria-label="Thursday">Thu</th>
+            <th scope="col" aria-label="Friday">Fri</th>
+            <th scope="col" aria-label="Saturday">Sat</th>
+          </tr>
+        </thead>
+        <tbody id="calendar-body">
+        </tbody>
+      </table>
+      <div id="calendar-description" class="sr-only">Calendar showing available appointment dates. Blue highlight denotes available slots, gray dates are disabled.</div>
+    </div>
+    <form class="appointment-form" id="appointment-form" aria-label="Appointment Booking Form" novalidate>
+      <label for="treatment-select">Select Treatment</label>
+      <select id="treatment-select" required aria-required="true" aria-describedby="treatment-duration-info">
+        <option value="" disabled selected>-- Choose Treatment --</option>
+      </select>
+      <div id="treatment-duration-info" style="font-size:0.9rem; color: var(--blue-primary);"></div>
+      <label for="dentist-select">Select Dentist</label>
+      <select id="dentist-select" required aria-required="true">
+        <option value="" disabled selected>-- Choose Dentist --</option>
+      </select>
+      <label for="appointment-time">Select Time Slot</label>
+      <input type="time" id="appointment-time" required aria-required="true" min="09:00" max="17:00" step="900" />
+      <button type="submit">Book Appointment</button>
+      <div id="appointment-feedback" role="alert" aria-live="assertive"></div>
+    </form>
+  </section>
+
+  <!-- Treatment Plans & History Section -->
+  <section id="treatments" aria-label="Treatment Plans & History">
+    <h2>Treatment Plans & History</h2>
+    <div class="treatment-history" aria-live="polite" aria-relevant="additions removals" id="treatment-history">
+      Loading treatments...
+    </div>
+    <div class="upload-section">
+      <label for="upload-image">Upload X-rays or Photos (optional):</label>
+      <input type="file" id="upload-image" accept="image/*" />
+      <div id="upload-status" style="font-size: 0.9rem; margin-top: 4px;"></div>
+    </div>
+  </section>
+
+  <!-- Billing & Payment Section -->
+  <section id="billing" aria-label="Billing and Payment">
+    <h2>Billing & Payment</h2>
+    <div class="billing-list" id="billing-list" aria-live="polite" aria-relevant="additions removals">
+      Loading invoices...
+    </div>
+    <div id="paypal-button-container"></div>
+    <div id="payment-status" role="alert" aria-live="assertive" style="margin-top: 1rem;"></div>
+  </section>
+
+  <!-- Messaging Section -->
+  <section id="messages" aria-label="Messaging with Clinic Staff">
+    <h2>Messages with Clinic Staff</h2>
+    <div class="chat-container" id="chat-container" aria-live="polite" aria-atomic="false">
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" aria-label="Type your message here" placeholder="Type your message..." />
+      <button id="send-message-btn" aria-label="Send message">Send</button>
+    </div>
+  </section>
+
+  <!-- Profile & Medical Records Section -->
+  <section id="profile" aria-label="Profile and Medical Records">
+    <h2>Your Profile & Medical Records</h2>
+    <form class="profile-form" id="profile-form" aria-live="polite" novalidate>
+      <label for="patient-name">Full Name</label>
+      <input type="text" id="patient-name" name="patient-name" required aria-required="true" />
+
+      <label for="patient-email">Email</label>
+      <input type="email" id="patient-email" name="patient-email" required aria-required="true" />
+
+      <label for="patient-phone">Phone Number</label>
+      <input type="tel" id="patient-phone" name="patient-phone" />
+
+      <label for="patient-address">Address</label>
+      <textarea id="patient-address" name="patient-address" rows="2"></textarea>
+
+      <label for="patient-allergies">Allergies</label>
+      <textarea id="patient-allergies" name="patient-allergies" rows="2" placeholder="List allergies here"></textarea>
+
+      <label for="patient-medications">Medications</label>
+      <textarea id="patient-medications" name="patient-medications" rows="2" placeholder="Current medications"></textarea>
+
+      <label for="insurance-upload">Upload Insurance / ID Documents</label>
+      <input type="file" id="insurance-upload" accept=".pdf,.png,.jpg,.jpeg" />
+
+      <button type="submit">Save Profile</button>
+      <div id="profile-feedback" role="alert" aria-live="assertive" style="margin-top: 8px;"></div>
+    </form>
+  </section>
+
+  <!-- Reminders & Follow-Ups Section -->
+  <section id="reminders" aria-label="Reminders and Follow-Ups">
+    <h2>Reminders & Follow-Up</h2>
+    <ul id="reminders-list" style="list-style:none; padding-left: 0; max-height: 300px; overflow-y: auto; background: white; border-radius: 8px; border: 1px solid var(--blue-lighter); padding: 1rem;">
+      <li>Loading reminders...</li>
+    </ul>
+  </section>
+
+  <!-- Feedback & Ratings Section -->
+  <section id="feedback" aria-label="Feedback and Experience Rating">
+    <h2>Feedback & Experience Rating</h2>
+    <div class="feedback-section">
+      <label for="service-rating">Rate Our Service</label>
+      <select id="service-rating" aria-required="true" required>
+        <option value="" disabled selected>-- Select Rating --</option>
+        <option value="5">🌟🌟🌟🌟🌟 Excellent</option>
+        <option value="4">🌟🌟🌟🌟 Very Good</option>
+        <option value="3">🌟🌟🌟 Good</option>
+        <option value="2">🌟🌟 Fair</option>
+        <option value="1">🌟 Poor</option>
+      </select>
+      <label for="feedback-comments" style="margin-top: 0.6rem;">Leave Suggestions or Report Issues</label>
+      <textarea id="feedback-comments" placeholder="Your comments here..."></textarea>
+      <button id="submit-feedback-btn">Submit Feedback</button>
+      <div id="feedback-response" role="alert" aria-live="assertive" style="margin-top: 8px;"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=PHP"></script>
+
+<script>
+    const firebaseConfig = {
+    apiKey: "AIzaSyBDlR815Lyc6dLrCUVnQ_GnChVHNKSUROQ",
+    authDomain: "dental-d3b8b.firebaseapp.com",
+    projectId: "dental-d3b8b",
+    storageBucket: "dental-d3b8b.appspot.com",
+    messagingSenderId: "458829928920",
+    appId: "1:458829928920:web:690369fb87c570cac8faad"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  // State variables
+  let currentUser = null;
+  let appointments = [];
+  let treatments = [];
+  let invoices = [];
+  let messages = [];
+  let reminders = [];
+  let notifications = [];
+  let dentists = [];
+  let treatmentsCatalog = [];
+
+  // Utils
+  function formatDate(date) {
+    return date.toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'});
+  }
+
+  function formatDateTime(date) {
+    return date.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric', hour:'2-digit',minute:'2-digit'});
+  }
+
+  function formatCurrencyPHP(amount) {
+    return '₱' + amount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function showNotification(type, message) {
+    alert(`[${type.toUpperCase()}] ${message}`);
+  }
+
+  function createNotificationListItem(type, message) {
+    const li = document.createElement('li');
+    li.classList.add('notif-' + type);
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'notif-icon';
+    if(type === 'appointment') iconSpan.textContent = '📅';
+    else if(type === 'message') iconSpan.textContent = '💬';
+    else if(type === 'payment') iconSpan.textContent = '💳';
+    li.appendChild(iconSpan);
+    li.appendChild(document.createTextNode(message));
+    return li;
+  }
+
+  // Navigation
+  const navButtons = document.querySelectorAll('.nav-btn');
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', e => {
+      navButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const targetId = btn.dataset.target;
+      document.querySelectorAll('main section').forEach(section => {
+        if(section.id === targetId) {
+          section.classList.add('active');
+        } else {
+          section.classList.remove('active');
+        }
+      });
+    });
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    auth.signOut().then(() => {
+      location.reload();
+    });
+  });
+
+  // Authentication: Anonymous sign-in or redirect prompt for email
+  async function signIn() {
+    return new Promise((resolve, reject) => {
+      auth.onAuthStateChanged(async user => {
+        if(user) {
+          currentUser = user;
+          await loadStaticCatalogs();
+          await loadPatientData();
+          await initializeUI();
+          resolve(user);
+        } else {
+          try {
+            await auth.signInAnonymously();
+          } catch(err) {
+            reject(err);
+          }
+        }
+      });
+    });
+  }
+
+  // Load Dentists and Treatments catalogs from Firestore (static collections)
+  async function loadStaticCatalogs() {
+    // Fetch dentists
+    try {
+      const dentistsSnapshot = await db.collection("dentists").get();
+      dentists = dentistsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    } catch(e) {
+      console.error('Error fetching dentists:', e);
+      dentists = [];
+    }
+    // Fetch treatments catalog
+    try {
+      const treatmentsSnapshot = await db.collection("treatmentsCatalog").get();
+      treatmentsCatalog = treatmentsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    } catch(e) {
+      console.error('Error fetching treatments catalog:', e);
+      treatmentsCatalog = [];
+    }
+  }
+
+  // Load patient data from Firestore
+  async function loadPatientData() {
+    if(!currentUser) return;
+    const userId = currentUser.uid;
+    try {
+      // Appointments
+      const apptSnap = await db.collection("patients").doc(userId).collection("appointments").get();
+      appointments = apptSnap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          date: data.date.toDate(),
+          time: data.time,
+          treatmentId: data.treatmentId,
+          dentistId: data.dentistId,
+          status: data.status || 'pending'
+        };
+      });
+      // Treatments
+      const treatSnap = await db.collection("patients").doc(userId).collection("treatments").get();
+      treatments = treatSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      // Invoices
+      const invSnap = await db.collection("patients").doc(userId).collection("invoices").get();
+      invoices = invSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      // Messages
+      const msgSnap = await db.collection("patients").doc(userId).collection("messages").orderBy("timestamp").get();
+      messages = msgSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      // Reminders
+      const remSnap = await db.collection("patients").doc(userId).collection("reminders").get();
+      reminders = remSnap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      // Notifications: Optional - could be merged from other queries or separate collection
+      // For demo, just clear
+      notifications = [];
+    } catch(e) {
+      console.error('Error loading patient data:', e);
+      appointments = [];
+      treatments = [];
+      invoices = [];
+      messages = [];
+      reminders = [];
+      notifications = [];
+    }
+  }
+
+  // Populate Dashboard
+  function populateDashboard() {
+    document.getElementById('welcome-msg').textContent = `Welcome, ${currentUser.displayName || 'Patient'}!`;
+    document.getElementById('user-info').textContent = `Logged in as: ${currentUser.email || 'Anonymous User'}`;
+    // Next Appointment
+    const upcomingAppts = appointments.filter(a => a.date >= new Date());
+    upcomingAppts.sort((a,b) => a.date - b.date);
+    const nextAppt = upcomingAppts.length > 0 ? upcomingAppts[0] : null;
+    const nextApptDiv = document.getElementById('next-appointment');
+    if(nextAppt) {
+      const treat = treatmentsCatalog.find(t => t.id === nextAppt.treatmentId);
+      const dentist = dentists.find(d => d.id === nextAppt.dentistId);
+      nextApptDiv.innerHTML = `<strong>${formatDateTime(nextAppt.date)} ${nextAppt.time}</strong><br/>${treat ? treat.name : 'Treatment'} with ${dentist ? dentist.name : 'Dentist'}`;
+    } else {
+      nextApptDiv.textContent = 'No upcoming appointments';
+    }
+    // Ongoing treatments
+    const ongoingContainer = document.getElementById('ongoing-treatments');
+    ongoingContainer.innerHTML = '';
+    const activeTreatments = treatments.filter(t => t.active === true);
+    if(activeTreatments.length === 0) {
+      ongoingContainer.innerHTML = '<li>No ongoing treatments</li>';
+    } else {
+      activeTreatments.forEach(t => {
+        const li = document.createElement('li');
+        li.textContent = `${t.name} with ${t.dentist || 'Unknown'} - Progress: ${t.progress || 0}%`;
+        ongoingContainer.appendChild(li);
+      });
+    }
+    // Outstanding balance
+    const balance = invoices.filter(inv => inv.status === 'due').reduce((sum, inv) => sum + (inv.amount || 0), 0);
+    document.getElementById('outstanding-balance').textContent = formatCurrencyPHP(balance);
+    // Notifications
+    const notifList = document.getElementById('notifications-list');
+    notifList.innerHTML = '';
+    if(notifications.length === 0) {
+      notifList.innerHTML = '<li>No notifications</li>';
+    } else {
+      notifications.forEach(n => notifList.appendChild(createNotificationListItem(n.type, n.content)));
+    }
+  }
+
+  // Populate appointment selects with real data
+  function populateAppointmentForm() {
+    const treatmentSelect = document.getElementById('treatment-select');
+    treatmentSelect.innerHTML = '<option value="" disabled selected>-- Choose Treatment --</option>';
+    treatmentsCatalog.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = `${t.name} (${t.duration || '?'} min)`;
+      treatmentSelect.appendChild(opt);
+    });
+    const dentistSelect = document.getElementById('dentist-select');
+    dentistSelect.innerHTML = '<option value="" disabled selected>-- Choose Dentist --</option>';
+    dentists.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.name;
+      dentistSelect.appendChild(opt);
+    });
+  }
+
+  let calendarCurrentDate = new Date();
+
+  function isWeekend(date) {
+    return date.getDay() === 0 || date.getDay() === 6;
+  }
+
+  function getDateKey(date) {
+    return date.toISOString().split('T')[0];
+  }
+
+  // For demo no real booked slots data, just disable weekends and past dates.
+  function generateCalendar(year, month) {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const calendarBody = document.getElementById('calendar-body');
+    calendarBody.innerHTML = '';
+
+    const startDay = firstDay.getDay();
+    const totalDays = lastDay.getDate();
+    let dayCount = 1;
+    for(let i = 0; i < 6; i++) {
+      const tr = document.createElement('tr');
+      for(let j = 0; j < 7; j++) {
+        const td = document.createElement('td');
+        if(i === 0 && j < startDay) {
+          td.classList.add('inactive');
+          tr.appendChild(td);
+          continue;
+        }
+        if(dayCount > totalDays) {
+          td.classList.add('inactive');
+          tr.appendChild(td);
+          continue;
+        }
+        const date = new Date(year, month, dayCount);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        td.dataset.date = getDateKey(date);
+        const dateSpan = document.createElement('div');
+        dateSpan.className = 'date-number';
+        dateSpan.textContent = dayCount;
+        td.appendChild(dateSpan);
+        if(isWeekend(date)) {
+          td.classList.add('unavailable');
+          const slotLabel = document.createElement('div');
+          slotLabel.className = 'slot-status slot-full';
+          slotLabel.textContent = 'Unavailable';
+          td.appendChild(slotLabel);
+        } else if(date < today) {
+          td.classList.add('inactive');
+        } else {
+          td.classList.add('available');
+          const slotLabel = document.createElement('div');
+          slotLabel.className = 'slot-status slot-available';
+          slotLabel.textContent = 'Available';
+          td.appendChild(slotLabel);
+          td.tabIndex = 0;
+          td.setAttribute('role', 'button');
+          td.setAttribute('aria-pressed', 'false');
+          td.setAttribute('aria-label', 'Select date ' + date.toDateString());
+          td.addEventListener('click', () => onSelectCalendarDate(date));
+          td.addEventListener('keydown', e => {
+            if(e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onSelectCalendarDate(date);
+            }
+          });
+        }
+        tr.appendChild(td);
+        dayCount++;
+      }
+      calendarBody.appendChild(tr);
+    }
+    document.getElementById('calendar-month-year').textContent = `${firstDay.toLocaleString(undefined, {month:'long'})} ${year}`;
+  }
+
+  let selectedDate = null;
+  function onSelectCalendarDate(date) {
+    selectedDate = date;
+    document.querySelectorAll('table.calendar td').forEach(td => {
+      if(td.dataset.date === getDateKey(date)) {
+        td.style.backgroundColor = 'var(--blue-light)';
+        td.setAttribute('aria-pressed', 'true');
+      } else {
+        td.style.backgroundColor = '';
+        td.setAttribute('aria-pressed', 'false');
+      }
+    });
+    document.getElementById('appointment-time').value = '';
+    document.getElementById('appointment-feedback').textContent = '';
+  }
+
+  document.getElementById('treatment-select').addEventListener('change', function() {
+    const selection = treatmentsCatalog.find(t => t.id === this.value);
+    const info = document.getElementById('treatment-duration-info');
+    if(selection) {
+      info.textContent = `Estimated duration: ${selection.duration || '?'} minutes`;
+    } else {
+      info.textContent = '';
+    }
+  });
+
+  async function bookAppointmentToFirestore(appt) {
+    if(!currentUser) return false;
+    try {
+      const userId = currentUser.uid;
+      const apptCollection = db.collection("patients").doc(userId).collection("appointments");
+      await apptCollection.add({
+        date: firebase.firestore.Timestamp.fromDate(appt.date),
+        time: appt.time,
+        treatmentId: appt.treatmentId,
+        dentistId: appt.dentistId,
+        status: 'pending'
+      });
+      return true;
+    } catch(e) {
+      console.error("Error adding appointment:", e);
+      return false;
+    }
+  }
+
+  document.getElementById('appointment-form').addEventListener('submit', async(e) => {
+    e.preventDefault();
+    const treatmentId = document.getElementById('treatment-select').value;
+    const dentistId = document.getElementById('dentist-select').value;
+    let timeSelected = document.getElementById('appointment-time').value;
+    const feedbackEl = document.getElementById('appointment-feedback');
+
+    feedbackEl.textContent = '';
+    feedbackEl.className = '';
+
+    if(!selectedDate) {
+      feedbackEl.textContent = 'Please select a date on the calendar.';
+      feedbackEl.classList.add('conflict-warning');
+      return;
+    }
+    if(!treatmentId || !dentistId || !timeSelected) {
+      feedbackEl.textContent = 'Please complete all fields.';
+      feedbackEl.classList.add('conflict-warning');
+      return;
+    }
+
+    if(timeSelected < '09:00' || timeSelected > '17:00') {
+      feedbackEl.textContent = 'Please select a time between 09:00 and 17:00.';
+      feedbackEl.classList.add('conflict-warning');
+      return;
+    }
+
+    // Check if conflicting appointments exist for selected dentist at the same date/time
+    const hasConflict = appointments.some(appt => appt.dentistId === dentistId && getDateKey(appt.date) === getDateKey(selectedDate) && appt.time === timeSelected);
+    if(hasConflict) {
+      feedbackEl.textContent = 'Selected time slot is already booked with this dentist. Please choose another time.';
+      feedbackEl.classList.add('conflict-warning');
+      return;
+    }
+
+    const newAppt = {
+      date: selectedDate,
+      time: timeSelected,
+      treatmentId,
+      dentistId,
+      status: 'pending'
+    };
+
+    const success = await bookAppointmentToFirestore(newAppt);
+    if(success) {
+      appointments.push(newAppt);
+      feedbackEl.textContent = 'Appointment request sent and pending approval.';
+      feedbackEl.classList.add('success-message');
+      document.getElementById('appointment-form').reset();
+      document.getElementById('treatment-duration-info').textContent = '';
+      selectedDate = null;
+      populateDashboard();
+    } else {
+      feedbackEl.textContent = 'Failed to book appointment. Try again later.';
+      feedbackEl.classList.add('conflict-warning');
+    }
+  });
+
+  function displayTreatments() {
+    const container = document.getElementById('treatment-history');
+    container.innerHTML = '';
+    if(treatments.length === 0) {
+      container.textContent = 'No treatment records available.';
+      return;
+    }
+    treatments.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'treatment-item';
+      const html = `
+        <strong>${t.name}</strong><br/>
+        Dentist: ${t.dentist || 'Unknown'}<br/>
+        Notes: ${t.notes || ''}<br/>
+        <div class="treatment-progress-bar" aria-label="Treatment progress ${t.progress || 0}%">
+          <div class="treatment-progress-fill" style="width:${t.progress || 0}%;"></div>
+        </div>
+      `;
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+  }
+
+  async function uploadImageToStorage(file) {
+    if(!currentUser || !file) return null;
+    try {
+      const ref = storage.ref(`patients/${currentUser.uid}/uploads/${Date.now()}_${file.name}`);
+      await ref.put(file);
+      const url = await ref.getDownloadURL();
+      return url;
+    } catch(e) {
+      console.error('Upload error:', e);
+      return null;
+    }
+  }
+
+  document.getElementById('upload-image').addEventListener('change', async(event) => {
+    const file = event.target.files[0];
+    const statusEl = document.getElementById('upload-status');
+    if(!file) return;
+    statusEl.textContent = 'Uploading...';
+    const uploadedUrl = await uploadImageToStorage(file);
+    if(uploadedUrl) {
+      statusEl.textContent = 'Upload successful!';
+      notifications.push({type:'message', content:'Image uploaded successfully.'});
+      populateDashboard();
+    } else {
+      statusEl.textContent = 'Upload failed. Try again.';
+    }
+  });
+
+  async function displayInvoices() {
+    const container = document.getElementById('billing-list');
+    container.innerHTML = '';
+    if(invoices.length === 0) {
+      container.textContent = 'No invoices found.';
+      return;
+    }
+    invoices.forEach(inv => {
+      const div = document.createElement('div');
+      div.className = 'invoice';
+      div.innerHTML = `
+        <div>Invoice #${inv.id} - ${inv.date || ''}</div> 
+        <div>${formatCurrencyPHP(inv.amount || 0)} - ${(inv.status || '').toUpperCase()}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function setupPaypalButton() {
+    const balanceDue = invoices.filter(i => i.status === 'due').reduce((sum, i) => sum + (i.amount || 0), 0);
+    const btnContainer = document.getElementById('paypal-button-container');
+    const paymentStatus = document.getElementById('payment-status');
+    btnContainer.innerHTML = '';
+
+    if(balanceDue <= 0) {
+      paymentStatus.textContent = 'No outstanding balance.';
+      return;
+    } else {
+      paymentStatus.textContent = '';
+      // Render PayPal button
+      paypal.Buttons({
+        style: {
+          shape: 'rect',
+          color: 'blue',
+          layout: 'vertical',
+          label: 'paypal',
+        },
+        createOrder: function(data, actions) {
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                value: balanceDue.toFixed(2),
+              }
+            }]
+          });
+        },
+        onApprove: async function(data, actions) {
+          const details = await actions.order.capture();
+          paymentStatus.textContent = `Payment completed by ${details.payer.name.given_name}`;
+          // Mark all invoices due as paid in Firestore and locally
+          const batch = db.batch();
+          const userId = currentUser.uid;
+          const invoiceRefs = [];
+          for(const inv of invoices) {
+            if(inv.status === 'due') {
+              const invoiceRef = db.collection("patients").doc(userId).collection("invoices").doc(inv.id);
+              batch.update(invoiceRef, {status: 'paid'});
+              inv.status = 'paid';
+              invoiceRefs.push(invoiceRef);
+            }
+          }
+          await batch.commit();
+          await displayInvoices();
+          populateDashboard();
+          notifications.push({type:'payment', content:`Payment of ₱${balanceDue.toFixed(2)} received.`});
+          populateDashboard();
+          btnContainer.innerHTML = '';
+        },
+        onError: function(err) {
+          paymentStatus.textContent = 'Payment failed. Please try again.';
+        }
+      }).render('#paypal-button-container');
+    }
+  }
+
+  function displayMessages() {
+    const container = document.getElementById('chat-container');
+    container.innerHTML = '';
+    messages.sort((a,b) => a.timestamp - b.timestamp);
+    messages.forEach(msg => {
+      const div = document.createElement('div');
+      div.classList.add('chat-message', msg.sender === 'patient' ? 'patient' : 'staff');
+      div.textContent = msg.content;
+      container.appendChild(div);
+    });
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Save message to Firestore
+  async function sendMessageToFirestore(content) {
+    if(!currentUser) return false;
+    try {
+      const userId = currentUser.uid;
+      const msgCollection = db.collection("patients").doc(userId).collection("messages");
+      await msgCollection.add({
+        sender: 'patient',
+        content,
+        timestamp: firebase.firestore.Timestamp.now()
+      });
+      return true;
+    } catch(e) {
+      console.error('Send message error:', e);
+      return false;
+    }
+  }
+
+  document.getElementById('send-message-btn').addEventListener('click', async() => {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if(!text) return;
+    const success = await sendMessageToFirestore(text);
+    if(success) {
+      messages.push({sender:'patient', content:text, timestamp: new Date().getTime()});
+      displayMessages();
+      input.value = '';
+      // For demo, simulate staff reply after 3s
+      setTimeout(() => {
+        const reply = {
+          id: 'server-reply-' + Date.now(),
+          sender: 'staff',
+          content: "Thank you for your message. We'll get back to you shortly.",
+          timestamp: new Date().getTime()
+        };
+        messages.push(reply);
+        displayMessages();
+        notifications.push({type:'message', content:'New message from clinic staff'});
+        populateDashboard();
+      }, 3000);
+    } else {
+      alert('Failed to send message.');
+    }
+  });
+
+  document.getElementById('chat-input').addEventListener('keydown', e => {
+    if(e.key === 'Enter') document.getElementById('send-message-btn').click();
+  });
+
+  async function saveProfileToFirestore(profile) {
+    if(!currentUser) return false;
+    try {
+      const userId = currentUser.uid;
+      await db.collection("patients").doc(userId).set(profile, {merge: true});
+      return true;
+    } catch(e) {
+      console.error('Save profile error:', e);
+      return false;
+    }
+  }
+
+  async function loadProfileFromFirestore() {
+    if(!currentUser) return {};
+    try {
+      const doc = await db.collection("patients").doc(currentUser.uid).get();
+      if(doc.exists) return doc.data();
+      return {};
+    } catch(e) {
+      console.error('Load profile error:', e);
+      return {};
+    }
+  }
+
+  async function loadInsuranceDocuments() {
+    if(!currentUser) return [];
+    try {
+      const listRef = storage.ref(`patients/${currentUser.uid}/insuranceDocs/`);
+      const res = await listRef.listAll();
+      const urls = await Promise.all(res.items.map(item => item.getDownloadURL()));
+      return urls;
+    } catch(e) {
+      console.error('Load insurance docs error:', e);
+      return [];
+    }
+  }
+
+  document.getElementById('profile-form').addEventListener('submit', async(e) => {
+    e.preventDefault();
+    const profile = {
+      displayName: document.getElementById('patient-name').value.trim(),
+      email: document.getElementById('patient-email').value.trim(),
+      phoneNumber: document.getElementById('patient-phone').value.trim(),
+      address: document.getElementById('patient-address').value.trim(),
+      allergies: document.getElementById('patient-allergies').value.trim(),
+      medications: document.getElementById('patient-medications').value.trim()
+    };
+    const success = await saveProfileToFirestore(profile);
+    const feedback = document.getElementById('profile-feedback');
+    if(success) {
+      feedback.textContent = 'Profile saved.';
+      // Update auth profile displayName and email if anonymous user then reload for display
+      if(auth.currentUser && auth.currentUser.isAnonymous) {
+        try {
+          await auth.currentUser.updateProfile({displayName: profile.displayName});
+          // Note: Email can't be updated if anonymous, this is mock scenario
+          currentUser = auth.currentUser;
+        } catch(e) {
+          console.warn('Update auth profile error', e);
+        }
+      }
+      populateDashboard();
+    } else {
+      feedback.textContent = 'Failed to save profile.';
+    }
+    setTimeout(() => {feedback.textContent = '';}, 3000);
+  });
+
+  // Insurance docs upload
+  document.getElementById('insurance-upload').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    if(!currentUser) {
+      alert('Please login first.');
+      return;
+    }
+    const path = `patients/${currentUser.uid}/insuranceDocs/${Date.now()}_${file.name}`;
+    try {
+      const ref = storage.ref(path);
+      await ref.put(file);
+      alert('Insurance document uploaded successfully.');
+    } catch(e) {
+      alert('Upload failed.');
+      console.error(e);
+    }
+  });
+
+  function displayReminders() {
+    const container = document.getElementById('reminders-list');
+    container.innerHTML = '';
+    if(reminders.length === 0) {
+      container.innerHTML = '<li>No reminders currently.</li>';
+      return;
+    }
+    reminders.forEach(rem => {
+      const li = document.createElement('li');
+      li.textContent = `${rem.date || ''}: ${rem.message}`;
+      container.appendChild(li);
+    });
+  }
+
+  async function saveFeedbackToFirestore(feedbackData) {
+    if(!currentUser) return false;
+    try {
+      const userId = currentUser.uid;
+      const feedbackCollection = db.collection("patients").doc(userId).collection("feedback");
+      await feedbackCollection.add(feedbackData);
+      return true;
+    } catch(e) {
+      console.error('Feedback save error:', e);
+      return false;
+    }
+  }
+
+  document.getElementById('submit-feedback-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const rating = document.getElementById('service-rating').value;
+    const comments = document.getElementById('feedback-comments').value.trim();
+    const feedbackResponse = document.getElementById('feedback-response');
+    if(!rating) {
+      feedbackResponse.textContent = 'Please select a rating before submitting.';
+      return;
+    }
+    const data = {
+      rating: parseInt(rating),
+      comments,
+      date: new Date()
+    };
+    const success = await saveFeedbackToFirestore(data);
+    if(success) {
+      feedbackResponse.textContent = 'Thank you for your feedback!';
+      document.getElementById('service-rating').value = '';
+      document.getElementById('feedback-comments').value = '';
+    } else {
+      feedbackResponse.textContent = 'Failed to submit feedback. Please try again later.';
+    }
+    setTimeout(() => {feedbackResponse.textContent = '';}, 4000);
+  });
+
+  async function initializeUI() {
+    populateDashboard();
+    populateAppointmentForm();
+    generateCalendar(calendarCurrentDate.getFullYear(), calendarCurrentDate.getMonth());
+    displayTreatments();
+    await displayInvoices();
+    displayMessages();
+    displayReminders();
+    setupPaypalButton();
+
+    document.getElementById('prev-month').onclick = () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+      generateCalendar(calendarCurrentDate.getFullYear(), calendarCurrentDate.getMonth());
+      selectedDate = null;
+    };
+    document.getElementById('next-month').onclick = () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+      generateCalendar(calendarCurrentDate.getFullYear(), calendarCurrentDate.getMonth());
+      selectedDate = null;
+    };
+  }
+
+  signIn()
+    .catch(err => {
+      console.error('Auth error:', err);
+      alert('Authentication failed. Reload page and try again.');
+    });
+</script>
+</body>
+</html>
+

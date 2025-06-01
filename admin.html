@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dental Admin Interface</title>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<style>
+  *{box-sizing:border-box;}
+  body {
+    margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:#f5f9ff; color:#333; min-height:100vh; display:flex; flex-direction: column;
+  }
+  header {
+    background:#004a9f; color:white; padding:1rem 1.5rem;
+    display:flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.15); position: sticky; top: 0; z-index: 10;
+  }
+  header h1 {
+    margin: 0; font-weight: 700; font-size: 1.5rem; user-select:none;
+  }
+  header button {
+    background:#1064c9; border:none; color:white; padding: 0.5rem 1rem;
+    border-radius:4px; font-weight:600; cursor:pointer; transition: background-color 0.3s;
+  }
+  header button:hover {background:#083d6b;}
+  main {
+    flex:1; display:flex; overflow:hidden; height: calc(100vh - 64px);
+  }
+  nav {
+    width: 260px; background:#fff; border-right: 1px solid #ddd;
+    display:flex; flex-direction: column; overflow-y: auto;
+  }
+  nav ul {
+    list-style:none; margin:0; padding:0; flex: 1;
+  }
+  nav ul li {
+    border-bottom: 1px solid #eee;
+  }
+  nav ul li button {
+    width: 100%; background:none; border:none;
+    padding: 1rem 1.5rem; text-align:left;
+    font-size:1rem; color:#004a9f; cursor:pointer;
+    border-left: 4px solid transparent; transition: 0.3s;
+  }
+  nav ul li button:hover, nav ul li button.active {
+    background:#e3f0ff; border-left-color:#1064c9;
+    color:#083d6b; font-weight:700;
+  }
+  section.content {
+    flex:1; padding:1.5rem 2rem; overflow-y:auto; background:#f5f9ff;
+  }
+  h2 {
+    margin-top:0; margin-bottom:1rem; font-weight:700;
+    color:#004a9f; border-bottom: 2px solid #1064c9; padding-bottom:0.25rem;
+  }
+  .scrollable {
+    max-height: 450px; overflow-y:auto; background:white;
+    border-radius: 8px; padding:1rem;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.1); margin-bottom: 1rem;
+  }
+  .btn {
+    cursor: pointer; border-radius: 5px; border:none;
+    font-weight: 600; padding: 0.5rem 1rem;
+    background: #1064c9; color: white;
+    transition: background-color 0.3s ease;
+    user-select:none;
+  }
+  .btn:hover:not(:disabled) {background:#083d6b;}
+  .btn:disabled {background:#a1c2f5; cursor:not-allowed;}
+  input, select, textarea {
+    width:100%; padding:0.5rem;
+    font-size:1rem; border:1px solid #ccc;
+    border-radius:4px; margin-bottom: 0.75rem;
+  }
+  textarea { resize: vertical; min-height: 80px;}
+  table {
+    width: 100%; border-collapse: collapse; margin-bottom: 1rem;
+  }
+  th, td {
+    border: 1px solid #ddd; padding: 0.5rem; text-align: left;
+  }
+  th {
+    background: #e3f0ff;
+    color: #004a9f;
+  }
+  .status {
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: white;
+    width: fit-content;
+  }
+  .status.pending { background: #fbc02d; }
+  .status.confirmed { background: #43a047; }
+  .status.checked-in { background: #1e88e5; }
+  .status.no-show { background: #e53935; }
+  .status.cancelled { background: #757575; }
+  /* Responsive */
+  @media (max-width: 900px) {
+    main {
+      flex-direction: column;
+      height: auto;
+    }
+    nav {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      overflow-x: auto;
+    }
+    nav ul {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      justify-content: space-around;
+    }
+    nav ul li {
+      border-bottom: none;
+      border-right: 1px solid #ddd;
+    }
+    nav ul li:last-child {
+      border-right: none;
+    }
+    nav ul li button {
+      padding: 0.75rem 0.85rem;
+      font-size: 0.9rem;
+    }
+    section.content {
+      padding: 1rem;
+      height: auto;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Dental Admin Interface</h1>
+  <button id="logoutBtn" title="Logout">Logout</button>
+</header>
+<main>
+  <nav aria-label="Admin navigation">
+    <ul>
+      <li><button class="active" data-section="dashboard">Dashboard</button></li>
+      <li><button data-section="userManagement">User Management</button></li>
+      <li><button data-section="appointmentManagement">Appointments</button></li>
+      <li><button data-section="treatmentManagement">Treatments</button></li>
+      <li><button data-section="billingManagement">Billing</button></li>
+      <li><button data-section="inventoryManagement">Inventory</button></li>
+      <li><button data-section="messaging">Messaging</button></li>
+      <li><button data-section="feedback">Feedback</button></li>
+      <li><button data-section="reports">Reports</button></li>
+      <li><button data-section="settings">Settings</button></li>
+    </ul>
+  </nav>
+  <section class="content" tabindex="0">
+  
+    <!-- Dashboard -->
+    <div id="dashboard" class="section active-section" style="display: block;">
+      <h2>Advanced Dashboard</h2>
+      <div>
+        <h3>Clinic KPIs</h3>
+        <pre id="clinicKPIs" class="scrollable" aria-live="polite">Loading KPIs...</pre>
+      </div>
+      <div>
+        <h3>Financial Snapshot</h3>
+        <pre id="financialSnapshot" class="scrollable" aria-live="polite">Loading financial data...</pre>
+      </div>
+      <div>
+        <h3>Live Staff Activity Tracker</h3>
+        <pre id="staffActivity" class="scrollable" aria-live="polite">Loading staff activity...</pre>
+      </div>
+      <div>
+        <h3>Live Patient Flow</h3>
+        <pre id="patientFlow" class="scrollable" aria-live="polite">Loading patient flow...</pre>
+      </div>
+      <div>
+        <h3>System Health & Logs Summary</h3>
+        <pre id="systemHealth" class="scrollable" aria-live="polite">Loading system health logs...</pre>
+      </div>
+    </div>
+  
+    <!-- User Management -->
+    <div id="userManagement" class="section" style="display: none;">
+      <h2>Master User Management</h2>
+      <h3>Staff Control Panel</h3>
+      <form id="staffForm" aria-label="Add/Edit Staff">
+        <label for="staffEmail">Staff Email:</label>
+        <input type="email" id="staffEmail" required />
+        <label for="staffRole">Role:</label>
+        <select id="staffRole" required>
+          <option value="">-- Select Role --</option>
+          <option value="receptionist">Receptionist</option>
+          <option value="assistant">Dental Assistant</option>
+          <option value="hygienist">Hygienist</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button type="submit" class="btn">Add Staff</button>
+      </form>
+      <h3>Staff List</h3>
+      <div id="staffList" class="scrollable" aria-live="polite">Loading staff...</div>
+      <h3>Patient Control Panel</h3>
+      <div id="patientControl" class="scrollable" aria-live="polite">Loading patients...</div>
+    </div>
+  
+    <!-- Appointment Management -->
+    <div id="appointmentManagement" class="section" style="display: none;">
+      <h2>Advanced Appointment Management</h2>
+      <table id="appointmentsTable" aria-live="polite" style="width:100%;border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>Patient</th><th>Dentist</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  
+    <!-- Treatment Management -->
+    <div id="treatmentManagement" class="section" style="display: none;">
+      <h2>Full Treatment Plan Oversight</h2>
+      <div id="treatmentPlans" class="scrollable" aria-live="polite">Loading treatment plans...</div>
+    </div>
+  
+    <!-- Billing Management -->
+    <div id="billingManagement" class="section" style="display: none;">
+      <h2>Billing & Finance Management</h2>
+      <div id="billingRecords" class="scrollable" aria-live="polite">Loading billing records...</div>
+    </div>
+  
+    <!-- Inventory Management -->
+    <div id="inventoryManagement" class="section" style="display: none;">
+      <h2>Inventory & Supply Management</h2>
+      <div id="inventoryLevels" class="scrollable" aria-live="polite">Loading inventory levels...</div>
+    </div>
+  
+    <!-- Messaging -->
+    <div id="messaging" class="section" style="display: none;">
+      <h2>Integrated Messaging</h2>
+      <div id="messagesContainer" class="scrollable" aria-live="polite"></div>
+      <form id="messageForm" aria-label="Send message form">
+        <textarea id="messageInput" placeholder="Type your message..." style="width: 100%; height: 60px; margin-top: 0.5rem;"></textarea>
+        <button type="submit" class="btn" style="margin-top: 0.5rem;">Send</button>
+      </form>
+    </div>
+  
+    <!-- Feedback -->
+    <div id="feedback" class="section" style="display: none;">
+      <h2>Feedback & Quality Control</h2>
+      <div id="feedbackList" class="scrollable" aria-live="polite">Loading feedback...</div>
+    </div>
+  
+    <!-- Reports -->
+    <div id="reports" class="section" style="display: none;">
+      <h2>Reports & Analytics</h2>
+      <div id="reportsData" class="scrollable" aria-live="polite">Loading reports...</div>
+    </div>
+  
+    <!-- Settings -->
+    <div id="settings" class="section" style="display: none;">
+      <h2>System Configuration & Security</h2>
+      <form id="settingsForm" aria-label="System settings" style="max-width: 600px;">
+        <label for="clinicHours">Clinic Hours:</label>
+        <input type="text" id="clinicHours" placeholder="e.g., Mon-Fri 9am-5pm" required />
+        <label for="cancellationRules">Cancellation Rules:</label>
+        <textarea id="cancellationRules" placeholder="Enter rules here..." required></textarea>
+        <button type="submit" class="btn">Save Settings</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+
+<script>
+  // Firebase config & initialization
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDlR815Lyc6dLrCUVnQ_GnChVHNKSUROQ",
+    authDomain: "dental-d3b8b.firebaseapp.com",
+    projectId: "dental-d3b8b",
+    storageBucket: "dental-d3b8b.appspot.com",
+    messagingSenderId: "458829928920",
+    appId: "1:458829928920:web:690369fb87c570cac8faad"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const logoutBtn = document.getElementById('logoutBtn');
+  const navButtons = document.querySelectorAll('nav ul li button');
+  const sections = document.querySelectorAll('.section');
+  const clinicKPIsDiv = document.getElementById('clinicKPIs');
+  const financialSnapshotDiv = document.getElementById('financialSnapshot');
+  const staffActivityDiv = document.getElementById('staffActivity');
+  const patientFlowDiv = document.getElementById('patientFlow');
+  const systemHealthDiv = document.getElementById('systemHealth');
+  const staffForm = document.getElementById('staffForm');
+  const staffListDiv = document.getElementById('staffList');
+  const patientControlDiv = document.getElementById('patientControl');
+  const appointmentsTableBody = document.querySelector('#appointmentsTable tbody');
+  const treatmentPlansDiv = document.getElementById('treatmentPlans');
+  const billingRecordsDiv = document.getElementById('billingRecords');
+  const inventoryLevelsDiv = document.getElementById('inventoryLevels');
+  const messagesContainer = document.getElementById('messagesContainer');
+  const messageForm = document.getElementById('messageForm');
+  const messageInput = document.getElementById('messageInput');
+  const feedbackListDiv = document.getElementById('feedbackList');
+  const reportsDataDiv = document.getElementById('reportsData');
+  const settingsForm = document.getElementById('settingsForm');
+  const clinicHoursInput = document.getElementById('clinicHours');
+  const cancellationRulesInput = document.getElementById('cancellationRules');
+
+  // Accessibility: Add ARIA attributes and keyboard navigation for nav
+  navButtons.forEach((btn, idx) => {
+    btn.setAttribute('tabindex', '0');
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', btn.classList.contains('active') ? 'true' : 'false');
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = navButtons[(idx + 1) % navButtons.length];
+        next.focus();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = navButtons[(idx - 1 + navButtons.length) % navButtons.length];
+        prev.focus();
+      }
+    });
+  });
+
+  // Util: format timestamp
+  function formatDateTime(ts) {
+    if (!ts) return '';
+    if (typeof ts.toDate === 'function') return ts.toDate().toLocaleString();
+    return new Date(ts).toLocaleString();
+  }
+
+  // No admin check: allow all users to access all navbars
+  // Remove authentication requirement for demo/public access
+  let currentUser = null;
+  refreshUI();
+
+  // Hide logout button if not logged in (for accessibility)
+  logoutBtn.style.display = "none";
+
+  // Navigation
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      showSection(btn.dataset.section);
+      navButtons.forEach(b => {
+        b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+  function showSection(section) {
+    sections.forEach(s => s.style.display = (s.id === section ? 'block' : 'none'));
+    navButtons.forEach(b => b.classList.toggle('active', b.dataset.section === section));
+  }
+
+  // Refresh UI all at once
+  async function refreshUI() {
+    showSection('dashboard');
+    await loadClinicKPIs();
+    await loadFinancialSnapshot();
+    await loadStaffActivity();
+    await loadPatientFlow();
+    await loadSystemHealth();
+    await loadStaffList();
+    await loadPatientControl();
+    await loadAppointments();
+    await loadTreatmentPlans();
+    await loadBillingRecords();
+    await loadInventoryLevels();
+    await loadMessages();
+    await loadFeedback();
+    await loadReports();
+    await loadSettings();
+  }
+  // Dashboard loaders (shown as JSON or summary for demo)
+  async function loadClinicKPIs() {
+    clinicKPIsDiv.textContent = 'Loading...';
+    try {
+      const apptsSnap = await db.collection('appointments').get();
+      const totalAppts = apptsSnap.size;
+      const confirmed = apptsSnap.docs.filter(d => d.data().status === 'confirmed').length;
+      const revenueSnap = await db.collectionGroup('payments').get();
+      const totalRevenue = revenueSnap.docs.reduce((a,d) => a+(d.data().amount||0),0);
+      clinicKPIsDiv.textContent = `Total Appointments: ${totalAppts}\nConfirmed: ${confirmed}\nTotal Revenue: $${totalRevenue.toFixed(2)}`;
+    } catch (e) {
+      clinicKPIsDiv.textContent = 'Failed to load KPIs.';
+    }
+  }
+  async function loadFinancialSnapshot() {
+    financialSnapshotDiv.textContent = 'Loading...';
+    try {
+      // Summarize payments by day etc (simplified as totals)
+      const paymentsSnap = await db.collectionGroup('payments').get();
+      const totalPayments = paymentsSnap.docs.reduce((a,d) => a+(d.data().amount||0),0);
+      financialSnapshotDiv.textContent = `Total Earnings Recorded: $${totalPayments.toFixed(2)}`;
+    } catch(e) {
+      financialSnapshotDiv.textContent = 'Failed to load financial snapshot.';
+    }
+  }
+  async function loadStaffActivity() {
+    staffActivityDiv.textContent = 'Loading...';
+    try {
+      const staffSnap = await db.collection('staff').get();
+      staffActivityDiv.textContent = `Staff count: ${staffSnap.size}\n(Staff activity logs feature not implemented)`;
+    } catch(e) {
+      staffActivityDiv.textContent = 'Failed to load staff activity.';
+    }
+  }
+  async function loadPatientFlow() {
+    patientFlowDiv.textContent = 'Loading...';
+    try {
+      const apptSnap = await db.collection('appointments').where('date', '==', new Date().toISOString().slice(0,10)).get();
+      const checkedIn = apptSnap.docs.filter(d => d.data().status === 'checked-in').length;
+      const noShows = apptSnap.docs.filter(d => d.data().status === 'no-show').length;
+      patientFlowDiv.textContent = `Checked-In Today: ${checkedIn}\nNo-Shows Today: ${noShows}`;
+    } catch(e) {
+      patientFlowDiv.textContent = 'Failed to load patient flow.';
+    }
+  }
+  async function loadSystemHealth() {
+    systemHealthDiv.textContent = "System health & logs not implemented.";
+  }
+  // User Management
+  staffForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = staffForm.staffEmail.value.trim();
+    const role = staffForm.staffRole.value;
+    if (!email||!role) return alert('Please fill all fields');
+    try {
+      // Use Firebase Authentication to create user? Firebase doesn't allow client-side create user without admin SDK
+      // So here, for demo, create or update staff doc in 'staff' collection
+      const existingQuery = await db.collection('staff').where('email','==',email).limit(1).get();
+      if(!existingQuery.empty) {
+        const docId = existingQuery.docs[0].id;
+        await db.collection('staff').doc(docId).update({role});
+      } else {
+        await db.collection('staff').add({email, role});
+      }
+      alert('Staff added/updated.');
+      staffForm.reset();
+      await loadStaffList();
+    } catch(e) {
+      alert('Failed to add staff: '+e.message);
+    }
+  });
+  async function loadStaffList() {
+    staffListDiv.textContent = 'Loading...';
+    try {
+      const staffSnap = await db.collection('staff').get();
+      if (staffSnap.empty) {
+        staffListDiv.textContent = 'No staff found.';
+        return;
+      }
+      const list = document.createElement('table');
+      list.innerHTML = `<thead><tr><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody></tbody>`;
+      const tbody = list.querySelector('tbody');
+      staffSnap.forEach(doc => {
+        const data = doc.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${data.email||'N/A'}</td>
+          <td>${data.role||'N/A'}</td>
+          <td>
+            <button class="btn" data-id="${doc.id}">Remove</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      staffListDiv.innerHTML = '';
+      staffListDiv.appendChild(list);
+      staffListDiv.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if(confirm('Remove this staff member?')){
+            await db.collection('staff').doc(btn.dataset.id).delete();
+            await loadStaffList();
+          }
+        });
+      });
+    } catch(e) {
+      staffListDiv.textContent = 'Error loading staff.';
+    }
+  }
+  async function loadPatientControl() {
+    patientControlDiv.textContent = 'Loading...';
+    try {
+      const patientsSnap = await db.collection('patients').get();
+      if (patientsSnap.empty) {
+        patientControlDiv.textContent = 'No patients found.';
+        return;
+      }
+      const list = document.createElement('table');
+      list.innerHTML = `<thead><tr><th>Name</th><th>Email</th><th>Actions</th></tr></thead><tbody></tbody>`;
+      const tbody = list.querySelector('tbody');
+      patientsSnap.forEach(doc => {
+        const data = doc.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${data.name||'N/A'}</td>
+          <td>${data.email||'N/A'}</td>
+          <td>
+            <button class="btn" data-id="${doc.id}">Edit</button>
+            <button class="btn" style="background:#e53935" data-id="${doc.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      patientControlDiv.innerHTML = '';
+      patientControlDiv.appendChild(list);
+      patientControlDiv.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const patientId = btn.dataset.id;
+          if(btn.textContent === 'Delete'){
+            if(confirm('Delete this patient? This action cannot be undone.')){
+              await db.collection('patients').doc(patientId).delete();
+              await loadPatientControl();
+            }
+            return;
+          }
+          // Edit patient (simple prompt demo)
+          const docSnap = await db.collection('patients').doc(patientId).get();
+          if(!docSnap.exists) return alert('Patient not found');
+          const patient = docSnap.data();
+          // prompt to edit name only for demo
+          const newName = prompt("Edit patient name:", patient.name || "");
+          if(newName !== null){
+            await db.collection('patients').doc(patientId).update({name:newName.trim()});
+            await loadPatientControl();
+          }
+        });
+      });
+    } catch(e) {
+      patientControlDiv.textContent = 'Error loading patients.';
+    }
+  }
+  // Appointments
+  async function loadAppointments() {
+    appointmentsTableBody.innerHTML = '<tr><td colspan="6">Loading appointments...</td></tr>';
+    try {
+      const apptsSnap = await db.collection('appointments').orderBy('date').orderBy('time').get();
+      if (apptsSnap.empty) {
+        appointmentsTableBody.innerHTML = '<tr><td colspan="6">No appointments found.</td></tr>';
+        return;
+      }
+      appointmentsTableBody.innerHTML = '';
+      apptsSnap.forEach(doc => {
+        const appt = doc.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${appt.patientName||appt.patientEmail}</td>
+          <td>${appt.dentist||''}</td>
+          <td>${appt.date||''}</td>
+          <td>${appt.time||''}</td>
+          <td><span class="status ${appt.status}">${appt.status||''}</span></td>
+          <td>
+            <button class="btn" data-id="${doc.id}" data-action="approve">Approve</button>
+            <button class="btn" style="background:#e53935" data-id="${doc.id}" data-action="cancel">Cancel</button>
+          </td>`;
+        appointmentsTableBody.appendChild(row);
+      });
+      appointmentsTableBody.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const action = btn.dataset.action;
+          let status = '';
+          if(action==='approve') status='confirmed';
+          else if(action==='cancel') status='cancelled';
+          if(!status) return;
+          try {
+            await db.collection('appointments').doc(id).update({status});
+            alert('Appointment status updated');
+            await loadAppointments();
+          } catch(e) {
+            alert('Failed to update appointment');
+          }
+        });
+      });
+    } catch(e) {
+      appointmentsTableBody.innerHTML = '<tr><td colspan="6">Error loading appointments.</td></tr>';
+    }
+  }
+  // Treatments
+  async function loadTreatmentPlans(){
+    treatmentPlansDiv.textContent = 'Loading...';
+    try{
+      const patientsSnap = await db.collection('patients').get();
+      if(patientsSnap.empty){
+        treatmentPlansDiv.textContent = 'No treatments found.';
+        return;
+      }
+      let html = '';
+      patientsSnap.forEach(doc=>{
+        const p = doc.data();
+        if(!p.treatments || p.treatments.length===0) return;
+        html+= `<h4>${p.name||doc.id}</h4><ul>`;
+        p.treatments.forEach(t=>{
+          html += `<li>${t.name} - Status: ${t.status||'N/A'} - Progress: ${t.progress||'N/A'}</li>`;
+        });
+        html += '</ul>';
+      });
+      treatmentPlansDiv.innerHTML = html;
+    }catch(e){
+      treatmentPlansDiv.textContent = 'Error loading treatments.';
+    }
+  }
+  // Billing
+  async function loadBillingRecords(){
+    billingRecordsDiv.textContent = 'Loading...';
+    try{
+      const patientsSnap = await db.collection('patients').get();
+      if(patientsSnap.empty){
+        billingRecordsDiv.textContent = 'No billing records.';
+        return;
+      }
+      let html = '';
+      patientsSnap.forEach(doc=>{
+        const p = doc.data();
+        if(!p.bills || p.bills.length===0) return;
+        html+= `<h4>${p.name||doc.id}</h4><ul>`;
+        p.bills.forEach(b=>{
+          html += `<li>Invoice #${b.invoiceNumber||'--'}: $${b.amount.toFixed(2)} - Status: ${b.status||'N/A'}</li>`;
+        });
+        html+='</ul>';
+      });
+      billingRecordsDiv.innerHTML = html;
+    }catch(e){
+      billingRecordsDiv.textContent = 'Error loading billing records.';
+    }
+  }
+  // Inventory
+  async function loadInventoryLevels(){
+    inventoryLevelsDiv.textContent = 'Inventory management not implemented.';
+  }
+  // Messaging
+  async function loadMessages(){
+    messagesContainer.textContent = 'Messaging system not implemented.';
+  }
+  // Feedback
+  async function loadFeedback(){
+    feedbackListDiv.textContent = 'Loading...';
+    try{
+      const patientsSnap = await db.collection('patients').get();
+      let html = '';
+      patientsSnap.forEach(doc=>{
+        const p=doc.data();
+        if(!p.feedback || p.feedback.length ===0) return;
+        html += `<h4>${p.name||doc.id}</h4><ul>`;
+        p.feedback.forEach(f=>{
+          html += `<li class="feedback-item"><strong>Rating:</strong> ${f.rating}/5<br>${f.text}<br><small>${formatDateTime(f.date)}</small></li>`;
+        });
+        html += '</ul>';
+      });
+      feedbackListDiv.innerHTML = html || 'No feedback available.';
+    }catch(e){
+      feedbackListDiv.textContent = 'Error loading feedback.';
+    }
+  }
+  // Reports
+  async function loadReports(){
+    reportsDataDiv.textContent = 'Reports and analytics not implemented.';
+  }
+  // Settings
+  async function loadSettings(){
+    try {
+      const doc = await db.collection('system').doc('settings').get();
+      if(doc.exists){
+        const data = doc.data();
+        clinicHoursInput.value = data.clinicHours || '';
+        cancellationRulesInput.value = data.cancellationRules || '';
+      }
+    }catch(e){}
+  }
+  settingsForm.addEventListener('submit', async e=>{
+    e.preventDefault();
+    try {
+      await db.collection('system').doc('settings').set({
+        clinicHours: clinicHoursInput.value.trim(),
+        cancellationRules: cancellationRulesInput.value.trim(),
+      });
+      alert('Settings saved.');
+    }catch(e){
+      alert('Failed to save settings.');
+    }
+  });
+
+</script>
+</body>
+</html>
